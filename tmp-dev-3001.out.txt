@@ -1,0 +1,10 @@
+
+> auretix-site@0.1.0 dev
+> next dev --port 3001
+
+   ▲ Next.js 15.5.15
+   - Local:        http://localhost:3001
+   - Network:      http://10.0.0.205:3001
+
+ ✓ Starting...
+ ✓ Ready in 15316.3s

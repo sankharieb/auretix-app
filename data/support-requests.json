@@ -1,0 +1,14 @@
+[
+  {
+    "id": "lead_1776989912292",
+    "createdAt": "2026-04-24T00:18:32.292Z",
+    "name": "Test Seller",
+    "email": "test@auretix.ai",
+    "company": "Auretix Test",
+    "supportNeed": "Growth",
+    "problem": "Need help with reorder timing.",
+    "channel": "amazon",
+    "engineSummary": "Test summary",
+    "recommendedTier": "Growth"
+  }
+]

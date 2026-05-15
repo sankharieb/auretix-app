@@ -1,0 +1,192 @@
+ ⨯ ./components/engine-workbench.js
+Error:   [31mx[0m Unexpected token. Did you mean `{'>'}` or `&gt;`?
+      ,-[[36;1;4mC:\Users\michb\Auretix\components\engine-workbench.js[0m:2955:1]
+ [2m2952[0m |                     </div>
+ [2m2953[0m |                     <div className="draft-review-grid">
+ [2m2954[0m |                       <div className="result-meta">
+ [2m2955[0m |                         Draft award: {plan.currentDraftAward} -> {plan.previewDraftAward}
+      : [35;1m                                                               ^[0m
+ [2m2956[0m |                       </div>
+ [2m2957[0m |                       <div className="result-meta">
+ [2m2958[0m |                         Supplier split: {plan.currentSupplierPath} -> {plan.previewSupplierPath}
+      `----
+  [31mx[0m Unexpected token. Did you mean `{'>'}` or `&gt;`?
+      ,-[[36;1;4mC:\Users\michb\Auretix\components\engine-workbench.js[0m:2958:1]
+ [2m2955[0m |                         Draft award: {plan.currentDraftAward} -> {plan.previewDraftAward}
+ [2m2956[0m |                       </div>
+ [2m2957[0m |                       <div className="result-meta">
+ [2m2958[0m |                         Supplier split: {plan.currentSupplierPath} -> {plan.previewSupplierPath}
+      : [35;1m                                                                    ^[0m
+ [2m2959[0m |                       </div>
+ [2m2960[0m |                       <div className="result-meta">
+ [2m2961[0m |                         Landed margin: {plan.currentMargin}% -> {plan.previewMargin}%
+      `----
+  [31mx[0m Unexpected token. Did you mean `{'>'}` or `&gt;`?
+      ,-[[36;1;4mC:\Users\michb\Auretix\components\engine-workbench.js[0m:2961:1]
+ [2m2958[0m |                         Supplier split: {plan.currentSupplierPath} -> {plan.previewSupplierPath}
+ [2m2959[0m |                       </div>
+ [2m2960[0m |                       <div className="result-meta">
+ [2m2961[0m |                         Landed margin: {plan.currentMargin}% -> {plan.previewMargin}%
+      : [35;1m                                                              ^[0m
+ [2m2962[0m |                       </div>
+ [2m2963[0m |                       <div className="result-meta">
+ [2m2964[0m |                         Inbound plan: {plan.currentInboundPlan} -> {plan.previewInboundPlan}
+      `----
+  [31mx[0m Unexpected token. Did you mean `{'>'}` or `&gt;`?
+      ,-[[36;1;4mC:\Users\michb\Auretix\components\engine-workbench.js[0m:2964:1]
+ [2m2961[0m |                         Landed margin: {plan.currentMargin}% -> {plan.previewMargin}%
+ [2m2962[0m |                       </div>
+ [2m2963[0m |                       <div className="result-meta">
+ [2m2964[0m |                         Inbound plan: {plan.currentInboundPlan} -> {plan.previewInboundPlan}
+      : [35;1m                                                                 ^[0m
+ [2m2965[0m |                       </div>
+ [2m2966[0m |                     </div>
+ [2m2967[0m |                     <div className="result-label inline-summary-label">
+      `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/engine-workbench.js
+./app/app/page.js
+ ⨯ ./components/engine-workbench.js
+Error:   [31mx[0m Unexpected token. Did you mean `{'>'}` or `&gt;`?
+      ,-[[36;1;4mC:\Users\michb\Auretix\components\engine-workbench.js[0m:2955:1]
+ [2m2952[0m |                     </div>
+ [2m2953[0m |                     <div className="draft-review-grid">
+ [2m2954[0m |                       <div className="result-meta">
+ [2m2955[0m |                         Draft award: {plan.currentDraftAward} -> {plan.previewDraftAward}
+      : [35;1m                                                               ^[0m
+ [2m2956[0m |                       </div>
+ [2m2957[0m |                       <div className="result-meta">
+ [2m2958[0m |                         Supplier split: {plan.currentSupplierPath} -> {plan.previewSupplierPath}
+      `----
+  [31mx[0m Unexpected token. Did you mean `{'>'}` or `&gt;`?
+      ,-[[36;1;4mC:\Users\michb\Auretix\components\engine-workbench.js[0m:2958:1]
+ [2m2955[0m |                         Draft award: {plan.currentDraftAward} -> {plan.previewDraftAward}
+ [2m2956[0m |                       </div>
+ [2m2957[0m |                       <div className="result-meta">
+ [2m2958[0m |                         Supplier split: {plan.currentSupplierPath} -> {plan.previewSupplierPath}
+      : [35;1m                                                                    ^[0m
+ [2m2959[0m |                       </div>
+ [2m2960[0m |                       <div className="result-meta">
+ [2m2961[0m |                         Landed margin: {plan.currentMargin}% -> {plan.previewMargin}%
+      `----
+  [31mx[0m Unexpected token. Did you mean `{'>'}` or `&gt;`?
+      ,-[[36;1;4mC:\Users\michb\Auretix\components\engine-workbench.js[0m:2961:1]
+ [2m2958[0m |                         Supplier split: {plan.currentSupplierPath} -> {plan.previewSupplierPath}
+ [2m2959[0m |                       </div>
+ [2m2960[0m |                       <div className="result-meta">
+ [2m2961[0m |                         Landed margin: {plan.currentMargin}% -> {plan.previewMargin}%
+      : [35;1m                                                              ^[0m
+ [2m2962[0m |                       </div>
+ [2m2963[0m |                       <div className="result-meta">
+ [2m2964[0m |                         Inbound plan: {plan.currentInboundPlan} -> {plan.previewInboundPlan}
+      `----
+  [31mx[0m Unexpected token. Did you mean `{'>'}` or `&gt;`?
+      ,-[[36;1;4mC:\Users\michb\Auretix\components\engine-workbench.js[0m:2964:1]
+ [2m2961[0m |                         Landed margin: {plan.currentMargin}% -> {plan.previewMargin}%
+ [2m2962[0m |                       </div>
+ [2m2963[0m |                       <div className="result-meta">
+ [2m2964[0m |                         Inbound plan: {plan.currentInboundPlan} -> {plan.previewInboundPlan}
+      : [35;1m                                                                 ^[0m
+ [2m2965[0m |                       </div>
+ [2m2966[0m |                     </div>
+ [2m2967[0m |                     <div className="result-label inline-summary-label">
+      `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/engine-workbench.js
+./app/app/page.js
+ ⨯ ./components/engine-workbench.js
+Error:   [31mx[0m Unexpected token. Did you mean `{'>'}` or `&gt;`?
+      ,-[[36;1;4mC:\Users\michb\Auretix\components\engine-workbench.js[0m:2955:1]
+ [2m2952[0m |                     </div>
+ [2m2953[0m |                     <div className="draft-review-grid">
+ [2m2954[0m |                       <div className="result-meta">
+ [2m2955[0m |                         Draft award: {plan.currentDraftAward} -> {plan.previewDraftAward}
+      : [35;1m                                                               ^[0m
+ [2m2956[0m |                       </div>
+ [2m2957[0m |                       <div className="result-meta">
+ [2m2958[0m |                         Supplier split: {plan.currentSupplierPath} -> {plan.previewSupplierPath}
+      `----
+  [31mx[0m Unexpected token. Did you mean `{'>'}` or `&gt;`?
+      ,-[[36;1;4mC:\Users\michb\Auretix\components\engine-workbench.js[0m:2958:1]
+ [2m2955[0m |                         Draft award: {plan.currentDraftAward} -> {plan.previewDraftAward}
+ [2m2956[0m |                       </div>
+ [2m2957[0m |                       <div className="result-meta">
+ [2m2958[0m |                         Supplier split: {plan.currentSupplierPath} -> {plan.previewSupplierPath}
+      : [35;1m                                                                    ^[0m
+ [2m2959[0m |                       </div>
+ [2m2960[0m |                       <div className="result-meta">
+ [2m2961[0m |                         Landed margin: {plan.currentMargin}% -> {plan.previewMargin}%
+      `----
+  [31mx[0m Unexpected token. Did you mean `{'>'}` or `&gt;`?
+      ,-[[36;1;4mC:\Users\michb\Auretix\components\engine-workbench.js[0m:2961:1]
+ [2m2958[0m |                         Supplier split: {plan.currentSupplierPath} -> {plan.previewSupplierPath}
+ [2m2959[0m |                       </div>
+ [2m2960[0m |                       <div className="result-meta">
+ [2m2961[0m |                         Landed margin: {plan.currentMargin}% -> {plan.previewMargin}%
+      : [35;1m                                                              ^[0m
+ [2m2962[0m |                       </div>
+ [2m2963[0m |                       <div className="result-meta">
+ [2m2964[0m |                         Inbound plan: {plan.currentInboundPlan} -> {plan.previewInboundPlan}
+      `----
+  [31mx[0m Unexpected token. Did you mean `{'>'}` or `&gt;`?
+      ,-[[36;1;4mC:\Users\michb\Auretix\components\engine-workbench.js[0m:2964:1]
+ [2m2961[0m |                         Landed margin: {plan.currentMargin}% -> {plan.previewMargin}%
+ [2m2962[0m |                       </div>
+ [2m2963[0m |                       <div className="result-meta">
+ [2m2964[0m |                         Inbound plan: {plan.currentInboundPlan} -> {plan.previewInboundPlan}
+      : [35;1m                                                                 ^[0m
+ [2m2965[0m |                       </div>
+ [2m2966[0m |                     </div>
+ [2m2967[0m |                     <div className="result-label inline-summary-label">
+      `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/engine-workbench.js
+./app/app/page.js
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⨯ ReferenceError: Cannot access 'recurrenceInsights' before initialization
+    at EngineWorkbench (components\engine-workbench.js:1939:5)
+  1937 |     approvalSummary,
+  1938 |     supplierExposurePortfolio,
+> 1939 |     recurrenceInsights,
+       |     ^
+  1940 |   );
+  1941 |   const groupedDailyChangeLog = groupDailyChangeLog(dailyChangeLog);
+  1942 |   const recurrenceInsights = buildRecurrenceInsights( {
+  digest: '1209757603'
+}
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⨯ ReferenceError: Cannot access 'recurrenceInsights' before initialization
+    at EngineWorkbench (components\engine-workbench.js:1939:5)
+  1937 |     approvalSummary,
+  1938 |     supplierExposurePortfolio,
+> 1939 |     recurrenceInsights,
+       |     ^
+  1940 |   );
+  1941 |   const groupedDailyChangeLog = groupDailyChangeLog(dailyChangeLog);
+  1942 |   const recurrenceInsights = buildRecurrenceInsights( {
+  digest: '1209757603'
+}
+ ⨯ ReferenceError: Cannot access 'recurrenceInsights' before initialization
+    at EngineWorkbench (components\engine-workbench.js:1939:5)
+  1937 |     approvalSummary,
+  1938 |     supplierExposurePortfolio,
+> 1939 |     recurrenceInsights,
+       |     ^
+  1940 |   );
+  1941 |   const groupedDailyChangeLog = groupDailyChangeLog(dailyChangeLog);
+  1942 |   const recurrenceInsights = buildRecurrenceInsights( {
+  digest: '1209757603'
+}
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
