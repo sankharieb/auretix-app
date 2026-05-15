@@ -77,6 +77,69 @@ const focusBriefs = {
   },
 };
 
+const inputModeConfigs = {
+  overview: {
+    title: "Business inputs",
+    objectiveLabel: "Business objective",
+    scenarioLabel: "Scenario mode",
+    labels: {
+      monthlyUnits: "Monthly units sold",
+      inventory: "Current inventory on hand",
+      leadTime: "Supplier lead time (days)",
+      supplierReliability: "Supplier reliability (%)",
+      growthRate: "Expected sales growth next month (%)",
+      margin: "Gross margin (%)",
+      cashRunway: "Cash runway for inventory buys (days)",
+    },
+    hiddenFields: [],
+    objectiveOptions: {
+      service: "Protect service levels",
+      cash: "Protect cash",
+      growth: "Protect growth",
+    },
+  },
+  procurement: {
+    title: "Procurement buying inputs",
+    objectiveLabel: "Buying objective",
+    scenarioLabel: "Buying scenario",
+    labels: {
+      monthlyUnits: "Expected monthly demand",
+      inventory: "Inventory available before next PO",
+      leadTime: "Supplier quote lead time (days)",
+      supplierReliability: "Supplier confidence (%)",
+      growthRate: "Demand change to fund (%)",
+      margin: "Gross margin to protect (%)",
+      cashRunway: "Cash runway for inventory buys (days)",
+    },
+    hiddenFields: [],
+    objectiveOptions: {
+      service: "Protect service levels",
+      cash: "Protect cash",
+      growth: "Fund growth",
+    },
+  },
+  "supply-chain": {
+    title: "Supply chain flow inputs",
+    objectiveLabel: "Service objective",
+    scenarioLabel: "Flow scenario",
+    labels: {
+      monthlyUnits: "Projected monthly demand",
+      inventory: "Available inventory across flow",
+      leadTime: "Inbound replenishment lead time (days)",
+      supplierReliability: "Inbound reliability (%)",
+      growthRate: "Demand volatility next month (%)",
+      margin: "Gross margin (%)",
+      cashRunway: "Cash runway for inventory buys (days)",
+    },
+    hiddenFields: ["margin", "cashRunway"],
+    objectiveOptions: {
+      service: "Protect service continuity",
+      cash: "Protect cash buffer",
+      growth: "Protect growth demand",
+    },
+  },
+};
+
 function buildSyncChannels(workspace, lastEventLabel = "Seeded workspace loaded") {
   return workspace.channels.map((channel, index) => ({
     id: channel.toLowerCase().replace(/\s+/g, "-"),
@@ -2405,6 +2468,8 @@ export default function EngineWorkbench({
       ? focusedPanel.points.slice(0, 3).join(" ")
       : decision.summary;
   const activeFocusBrief = focusBriefs[focus] || null;
+  const inputModeConfig = inputModeConfigs[focus] || inputModeConfigs.overview;
+  const isInputHidden = (name) => inputModeConfig.hiddenFields.includes(name);
   const showDashboard = focus === "overview";
   const selectedItem =
     queue.items.find((item) => item.sku === selectedSku) || queue.items[0] || null;
@@ -5773,7 +5838,7 @@ export default function EngineWorkbench({
         ) : null}
 
         <section className="lab-card controls-card">
-          <h3>Business inputs</h3>
+          <h3>{inputModeConfig.title}</h3>
 
           <label htmlFor="businessType">Business type</label>
           <select
@@ -5803,19 +5868,19 @@ export default function EngineWorkbench({
             <option value="enterprise">Enterprise</option>
           </select>
 
-          <label htmlFor="objectiveMode">Business objective</label>
+          <label htmlFor="objectiveMode">{inputModeConfig.objectiveLabel}</label>
           <select
             id="objectiveMode"
             name="objectiveMode"
             onChange={updateField}
             value={scenario.objectiveMode}
           >
-            <option value="service">Protect service levels</option>
-            <option value="cash">Protect cash</option>
-            <option value="growth">Protect growth</option>
+            <option value="service">{inputModeConfig.objectiveOptions.service}</option>
+            <option value="cash">{inputModeConfig.objectiveOptions.cash}</option>
+            <option value="growth">{inputModeConfig.objectiveOptions.growth}</option>
           </select>
 
-          <label htmlFor="scenarioMode">Scenario mode</label>
+          <label htmlFor="scenarioMode">{inputModeConfig.scenarioLabel}</label>
           <select
             id="scenarioMode"
             name="scenarioMode"
@@ -5827,7 +5892,7 @@ export default function EngineWorkbench({
             <option value="demandSpike">Demand spike</option>
           </select>
 
-          <label htmlFor="monthlyUnits">Monthly units sold</label>
+          <label htmlFor="monthlyUnits">{inputModeConfig.labels.monthlyUnits}</label>
           <input
             id="monthlyUnits"
             min="1"
@@ -5837,7 +5902,7 @@ export default function EngineWorkbench({
             value={scenario.monthlyUnits}
           />
 
-          <label htmlFor="inventory">Current inventory on hand</label>
+          <label htmlFor="inventory">{inputModeConfig.labels.inventory}</label>
           <input
             id="inventory"
             min="0"
@@ -5847,7 +5912,7 @@ export default function EngineWorkbench({
             value={scenario.inventory}
           />
 
-          <label htmlFor="leadTime">Supplier lead time (days)</label>
+          <label htmlFor="leadTime">{inputModeConfig.labels.leadTime}</label>
           <input
             id="leadTime"
             min="1"
@@ -5857,7 +5922,7 @@ export default function EngineWorkbench({
             value={scenario.leadTime}
           />
 
-          <label htmlFor="supplierReliability">Supplier reliability (%)</label>
+          <label htmlFor="supplierReliability">{inputModeConfig.labels.supplierReliability}</label>
           <input
             id="supplierReliability"
             max="100"
@@ -5868,7 +5933,7 @@ export default function EngineWorkbench({
             value={scenario.supplierReliability}
           />
 
-          <label htmlFor="growthRate">Expected sales growth next month (%)</label>
+          <label htmlFor="growthRate">{inputModeConfig.labels.growthRate}</label>
           <input
             id="growthRate"
             max="300"
@@ -5879,26 +5944,34 @@ export default function EngineWorkbench({
             value={scenario.growthRate}
           />
 
-          <label htmlFor="margin">Gross margin (%)</label>
-          <input
-            id="margin"
-            max="100"
-            min="0"
-            name="margin"
-            onChange={updateField}
-            type="number"
-            value={scenario.margin}
-          />
+          {isInputHidden("margin") ? null : (
+            <>
+              <label htmlFor="margin">{inputModeConfig.labels.margin}</label>
+              <input
+                id="margin"
+                max="100"
+                min="0"
+                name="margin"
+                onChange={updateField}
+                type="number"
+                value={scenario.margin}
+              />
+            </>
+          )}
 
-          <label htmlFor="cashRunway">Cash runway for inventory buys (days)</label>
-          <input
-            id="cashRunway"
-            min="1"
-            name="cashRunway"
-            onChange={updateField}
-            type="number"
-            value={scenario.cashRunway}
-          />
+          {isInputHidden("cashRunway") ? null : (
+            <>
+              <label htmlFor="cashRunway">{inputModeConfig.labels.cashRunway}</label>
+              <input
+                id="cashRunway"
+                min="1"
+                name="cashRunway"
+                onChange={updateField}
+                type="number"
+                value={scenario.cashRunway}
+              />
+            </>
+          )}
 
           {renderConditionalInputs()}
 
