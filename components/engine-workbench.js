@@ -80,6 +80,9 @@ const focusBriefs = {
 const inputModeConfigs = {
   overview: {
     title: "Business inputs",
+    outputTitle: "Engine output",
+    businessTypeLabel: "Business type",
+    businessScaleLabel: "Business scale",
     objectiveLabel: "Business objective",
     scenarioLabel: "Scenario mode",
     labels: {
@@ -92,6 +95,7 @@ const inputModeConfigs = {
       cashRunway: "Cash runway for inventory buys (days)",
     },
     hiddenFields: [],
+    modes: [],
     objectiveOptions: {
       service: "Protect service levels",
       cash: "Protect cash",
@@ -100,6 +104,9 @@ const inputModeConfigs = {
   },
   procurement: {
     title: "Procurement buying inputs",
+    outputTitle: "Procurement output",
+    businessTypeLabel: "Buying profile",
+    businessScaleLabel: "Purchasing maturity",
     objectiveLabel: "Buying objective",
     scenarioLabel: "Buying scenario",
     labels: {
@@ -112,6 +119,42 @@ const inputModeConfigs = {
       cashRunway: "Cash runway for inventory buys (days)",
     },
     hiddenFields: [],
+    modes: [
+      {
+        id: "cash-safe-po",
+        label: "Cash-safe PO",
+        description: "Size a buy that protects service without trapping too much cash.",
+        scenario: {
+          objectiveMode: "cash",
+          scenarioMode: "normal",
+          growthRate: 8,
+          cashRunway: 35,
+          margin: 18,
+        },
+      },
+      {
+        id: "supplier-split",
+        label: "Supplier split",
+        description: "Model a backup path when supplier confidence or lead time is weak.",
+        scenario: {
+          objectiveMode: "service",
+          scenarioMode: "supplierDelay",
+          supplierReliability: 62,
+          leadTime: 35,
+        },
+      },
+      {
+        id: "growth-buy",
+        label: "Growth buy",
+        description: "Fund demand upside while keeping the recommended PO disciplined.",
+        scenario: {
+          objectiveMode: "growth",
+          scenarioMode: "demandSpike",
+          growthRate: 34,
+          cashRunway: 55,
+        },
+      },
+    ],
     objectiveOptions: {
       service: "Protect service levels",
       cash: "Protect cash",
@@ -120,6 +163,9 @@ const inputModeConfigs = {
   },
   "supply-chain": {
     title: "Supply chain flow inputs",
+    outputTitle: "Supply chain output",
+    businessTypeLabel: "Flow profile",
+    businessScaleLabel: "Network scale",
     objectiveLabel: "Service objective",
     scenarioLabel: "Flow scenario",
     labels: {
@@ -132,6 +178,44 @@ const inputModeConfigs = {
       cashRunway: "Cash runway for inventory buys (days)",
     },
     hiddenFields: ["margin", "cashRunway"],
+    modes: [
+      {
+        id: "coverage-watch",
+        label: "Coverage watch",
+        description: "Check days of cover against the inbound replenishment window.",
+        scenario: {
+          objectiveMode: "service",
+          scenarioMode: "normal",
+          inventory: 1260,
+          leadTime: 28,
+          supplierReliability: 74,
+        },
+      },
+      {
+        id: "inbound-delay",
+        label: "Inbound delay",
+        description: "Stress-test what happens when suppliers or shipments slip.",
+        scenario: {
+          objectiveMode: "service",
+          scenarioMode: "supplierDelay",
+          inventory: 980,
+          leadTime: 39,
+          supplierReliability: 58,
+        },
+      },
+      {
+        id: "demand-surge",
+        label: "Demand surge",
+        description: "See whether the flow can absorb a sudden demand jump.",
+        scenario: {
+          objectiveMode: "growth",
+          scenarioMode: "demandSpike",
+          inventory: 1050,
+          growthRate: 42,
+          supplierReliability: 76,
+        },
+      },
+    ],
     objectiveOptions: {
       service: "Protect service continuity",
       cash: "Protect cash buffer",
@@ -1978,6 +2062,9 @@ export default function EngineWorkbench({
   const [integrations, setIntegrations] = useState([]);
   const [roiSnapshot, setRoiSnapshot] = useState(null);
   const [shopifyShop, setShopifyShop] = useState("");
+  const [selectedModeId, setSelectedModeId] = useState(
+    () => inputModeConfigs[focus]?.modes?.[0]?.id || "custom",
+  );
 
   useEffect(() => {
     try {
@@ -2001,6 +2088,10 @@ export default function EngineWorkbench({
       );
     } catch {}
   }, [savedWorkspaces]);
+
+  useEffect(() => {
+    setSelectedModeId(inputModeConfigs[focus]?.modes?.[0]?.id || "custom");
+  }, [focus]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2235,8 +2326,30 @@ export default function EngineWorkbench({
     }
   }
 
+  function applyModePreset(mode) {
+    const nextScenario = normalizeScenario({
+      ...scenario,
+      ...mode.scenario,
+    });
+
+    setSelectedModeId(mode.id);
+    setScenario(nextScenario);
+    refreshWorkspace(
+      nextScenario,
+      workspaceState,
+      createSyncEvent({
+        title: `${mode.label} mode loaded`,
+        detail: mode.description,
+        sku: "Scenario",
+        channel: focus === "procurement" ? "Procurement" : "Supply chain",
+        quantity: 0,
+      }),
+    );
+  }
+
   function updateField(event) {
     const { name, value } = event.target;
+    setSelectedModeId("custom");
 
     if (name === "businessType") {
       const nextScenario = {
@@ -5840,7 +5953,25 @@ export default function EngineWorkbench({
         <section className="lab-card controls-card">
           <h3>{inputModeConfig.title}</h3>
 
-          <label htmlFor="businessType">Business type</label>
+          {inputModeConfig.modes.length > 0 ? (
+            <div className="mode-menu">
+              {inputModeConfig.modes.map((mode) => (
+                <button
+                  className={`mode-option${
+                    selectedModeId === mode.id ? " active" : ""
+                  }`}
+                  key={mode.id}
+                  onClick={() => applyModePreset(mode)}
+                  type="button"
+                >
+                  <span>{mode.label}</span>
+                  <small>{mode.description}</small>
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          <label htmlFor="businessType">{inputModeConfig.businessTypeLabel}</label>
           <select
             id="businessType"
             name="businessType"
@@ -5855,7 +5986,7 @@ export default function EngineWorkbench({
             <option value="consumerBrand">Consumer brand</option>
           </select>
 
-          <label htmlFor="businessScale">Business scale</label>
+          <label htmlFor="businessScale">{inputModeConfig.businessScaleLabel}</label>
           <select
             id="businessScale"
             name="businessScale"
@@ -6056,7 +6187,7 @@ export default function EngineWorkbench({
 
         <section className="lab-card results-card">
           <div className="results-header">
-            <h3>Engine output</h3>
+            <h3>{inputModeConfig.outputTitle}</h3>
             <span className={`decision-badge ${decision.badgeLevel}`}>{decision.badgeText}</span>
           </div>
 

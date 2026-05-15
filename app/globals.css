@@ -1285,6 +1285,42 @@ textarea {
   line-height: 1.6;
 }
 
+.mode-menu {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 10px 0 22px;
+}
+
+.mode-option {
+  min-height: 104px;
+  padding: 14px;
+  border: 1px solid rgba(129, 171, 197, 0.16);
+  border-radius: 16px;
+  background: rgba(3, 14, 20, 0.82);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mode-option span {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 900;
+}
+
+.mode-option small {
+  display: block;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.mode-option.active {
+  border-color: rgba(91, 242, 200, 0.46);
+  background: rgba(91, 242, 200, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(91, 242, 200, 0.12);
+}
+
 .readiness-stack {
   margin-top: 20px;
 }
@@ -1425,6 +1461,7 @@ textarea {
   .change-override-grid,
   .planning-board,
   .focus-brief-strip,
+  .mode-menu,
   .scenario-compare-grid,
   .readiness-filter-grid,
   .readiness-status-grid,
