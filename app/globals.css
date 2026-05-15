@@ -1262,6 +1262,29 @@ textarea {
   color: var(--text);
 }
 
+.focus-brief-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+  gap: 20px;
+  margin-top: 18px;
+  padding: 22px;
+  border: 1px solid rgba(129, 171, 197, 0.16);
+  border-radius: 18px;
+  background: rgba(5, 25, 34, 0.76);
+}
+
+.focus-brief-strip h2 {
+  margin: 8px 0;
+  font-size: clamp(1.45rem, 2.4vw, 2.1rem);
+}
+
+.focus-brief-strip p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .readiness-stack {
   margin-top: 20px;
 }
@@ -1401,6 +1424,7 @@ textarea {
   .change-log-groups,
   .change-override-grid,
   .planning-board,
+  .focus-brief-strip,
   .scenario-compare-grid,
   .readiness-filter-grid,
   .readiness-status-grid,

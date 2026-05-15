@@ -7,7 +7,12 @@ import {
   buildDecisionQueue,
   buildInitialActionState,
 } from "../lib/decision-queue";
-import { buildDecision, defaultDecision, defaultScenario } from "../lib/engine";
+import {
+  buildDecision,
+  defaultDecision,
+  defaultScenario,
+  normalizeScenario,
+} from "../lib/engine";
 import { getSeededWorkspace } from "../lib/seeded-workspace";
 
 function MetricCard({ metric }) {
@@ -35,6 +40,42 @@ function DecisionPanel({ panel, isActive }) {
     </div>
   );
 }
+
+const previewAccountContext = {
+  mode: "preview",
+  role: "demo",
+  company: {
+    name: "Seeded beta workspace",
+  },
+  user: {
+    email: "Preview visitor",
+  },
+};
+
+const focusBriefs = {
+  procurement: {
+    badge: "Procurement mode",
+    title: "PO and buying decisions",
+    copy:
+      "This view emphasizes purchase order size, supplier confidence, reorder timing, and cash-safe buying decisions.",
+    checks: [
+      "Recommended PO size and cash-safe floor",
+      "Supplier reliability and backup path",
+      "Margin and working-capital pressure",
+    ],
+  },
+  "supply-chain": {
+    badge: "Supply chain mode",
+    title: "Flow and service continuity",
+    copy:
+      "This view emphasizes days of cover, service risk, inventory flow, and the operational move that protects the business.",
+    checks: [
+      "Days of cover against lead time",
+      "Stockout and service-risk window",
+      "Inventory flow across channels or nodes",
+    ],
+  },
+};
 
 function buildSyncChannels(workspace, lastEventLabel = "Seeded workspace loaded") {
   return workspace.channels.map((channel, index) => ({
@@ -1932,7 +1973,7 @@ export default function EngineWorkbench({
           return;
         }
 
-        const nextScenario = loadedWorkspace.scenario || defaultScenario;
+        const nextScenario = normalizeScenario(loadedWorkspace.scenario || defaultScenario);
         const nextWorkspaceState = loadedWorkspace.workspaceState;
         const nextSupplierStrategyMemory =
           loadedWorkspace.supplierStrategyMemory || {};
@@ -1968,6 +2009,16 @@ export default function EngineWorkbench({
         });
       } catch (error) {
         if (cancelled) {
+          return;
+        }
+
+        if (error.message === "Authentication required.") {
+          setAccountContext(previewAccountContext);
+          setBackendStatus({
+            type: "success",
+            message:
+              "Preview mode: seeded demo data is active. Sign in only when you want saved company workspaces, audit history, and private data.",
+          });
           return;
         }
 
@@ -2247,6 +2298,16 @@ export default function EngineWorkbench({
         message: `Decision run saved. Highest risk: ${payload.decisionRun.summary.highestRiskSku} (${payload.decisionRun.summary.highestRiskScore}).`,
       });
     } catch (error) {
+      if (error.message === "Authentication required.") {
+        setAccountContext(previewAccountContext);
+        setBackendStatus({
+          type: "success",
+          message:
+            "Run complete in preview mode. Sign in later to save decision history, audit trails, and company-specific data.",
+        });
+        return;
+      }
+
       setBackendStatus({
         type: "error",
         message:
@@ -2338,6 +2399,12 @@ export default function EngineWorkbench({
         ? "Supply-chain interpretation"
         : "Unified decision summary";
 
+  const focusedPanel = decision.panels.find((panel) => panel.key === focus);
+  const focusedSummary =
+    focusedPanel?.points?.length > 0
+      ? focusedPanel.points.slice(0, 3).join(" ")
+      : decision.summary;
+  const activeFocusBrief = focusBriefs[focus] || null;
   const showDashboard = focus === "overview";
   const selectedItem =
     queue.items.find((item) => item.sku === selectedSku) || queue.items[0] || null;
@@ -2642,6 +2709,16 @@ export default function EngineWorkbench({
       });
       await refreshIntegrationStatus(savedWorkspace.id);
     } catch (error) {
+      if (error.message === "Authentication required.") {
+        setAccountContext(previewAccountContext);
+        setBackendStatus({
+          type: "success",
+          message:
+            "Workspace saved in this browser for preview. Sign in later to save it to a company workspace.",
+        });
+        return;
+      }
+
       setBackendStatus({
         type: "error",
         message:
@@ -2652,7 +2729,8 @@ export default function EngineWorkbench({
   }
 
   function loadSavedWorkspace(savedWorkspace) {
-    setScenario(savedWorkspace.scenario);
+    const nextScenario = normalizeScenario(savedWorkspace.scenario);
+    setScenario(nextScenario);
     setDraftPurchaseOrders(savedWorkspace.draftPurchaseOrders || []);
     setSelectedDraftPoId(savedWorkspace.draftPurchaseOrders?.[0]?.id || null);
     setSelectedLivePoId(savedWorkspace.workspaceState?.purchaseOrders?.[0]?.id || null);
@@ -2670,7 +2748,7 @@ export default function EngineWorkbench({
     setFixPlans(savedWorkspace.fixPlans || []);
     setExpandedChangeId(null);
     refreshWorkspace(
-      savedWorkspace.scenario,
+      nextScenario,
       savedWorkspace.workspaceState,
       createSyncEvent({
         title: "Workspace loaded",
@@ -3376,8 +3454,11 @@ export default function EngineWorkbench({
           <Link href="/app/procurement">Procurement</Link>
           <Link href="/app/supply-chain">Supply chain</Link>
           <Link href="/app/readiness">Readiness</Link>
-          <Link href="/login">Sign in</Link>
-          <Link href="/logout">Sign out</Link>
+          {accountContext?.mode === "supabase" ? (
+            <Link href="/logout">Sign out</Link>
+          ) : (
+            <Link href="/login">Sign in</Link>
+          )}
         </nav>
       </header>
 
@@ -3400,6 +3481,21 @@ export default function EngineWorkbench({
           {backendStatus.message}
           {latestDecisionRunId ? ` Latest run: ${latestDecisionRunId}.` : ""}
         </div>
+      ) : null}
+
+      {activeFocusBrief ? (
+        <section className="focus-brief-strip">
+          <div>
+            <div className="result-label">{activeFocusBrief.badge}</div>
+            <h2>{activeFocusBrief.title}</h2>
+            <p>{activeFocusBrief.copy}</p>
+          </div>
+          <ul className="action-list">
+            {activeFocusBrief.checks.map((check) => (
+              <li key={check}>{check}</li>
+            ))}
+          </ul>
+        </section>
       ) : null}
 
       <section className="lab-layout app-lab-layout">
@@ -5892,7 +5988,7 @@ export default function EngineWorkbench({
           </div>
 
           <div className="result-label summary-label">{focusedSummaryLabel}</div>
-          <div className="result-summary">{decision.summary}</div>
+          <div className="result-summary">{focusedSummary}</div>
 
           <div className="result">
             {visibleMetrics.map((metric) => (
