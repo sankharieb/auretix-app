@@ -70,6 +70,7 @@ export default function ProcurementDecisionView() {
           <Link href="/app/procurement">Procurement</Link>
           <Link href="/app/supply-chain">Supply chain</Link>
           <Link href="/app/readiness">Readiness</Link>
+          <Link href="/app/data-readiness">Data readiness</Link>
           <Link href="/login">Sign in</Link>
         </nav>
       </header>

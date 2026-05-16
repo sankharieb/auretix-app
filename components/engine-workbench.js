@@ -3762,6 +3762,7 @@ export default function EngineWorkbench({
           <Link href="/app/procurement">Procurement</Link>
           <Link href="/app/supply-chain">Supply chain</Link>
           <Link href="/app/readiness">Readiness</Link>
+          <Link href="/app/data-readiness">Data readiness</Link>
           {accountContext?.mode === "supabase" ? (
             <Link href="/logout">Sign out</Link>
           ) : (
