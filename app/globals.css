@@ -1363,6 +1363,11 @@ textarea {
   line-height: 1.55;
 }
 
+.procurement-run-result {
+  border-color: rgba(255, 201, 107, 0.32);
+  background: rgba(255, 201, 107, 0.09);
+}
+
 .readiness-stack {
   margin-top: 20px;
 }

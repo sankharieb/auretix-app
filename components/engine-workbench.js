@@ -273,6 +273,30 @@ function buildFlowCheckReport(rawScenario) {
   };
 }
 
+function buildProcurementRunReport(rawScenario) {
+  const decision = buildDecision(rawScenario);
+  const metricMap = Object.fromEntries(
+    decision.metrics.map((metric) => [metric.label, metric]),
+  );
+  const checkedAt = new Date().toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  return {
+    checkedAt,
+    status: decision.badgeText,
+    summary: decision.panels.find((panel) => panel.key === "procurement")?.points?.[2] ||
+      decision.summary,
+    details: [
+      `Recommended PO: ${metricMap["Recommended PO"]?.value || "Not calculated"}`,
+      metricMap["Recommended PO"]?.detail || "Cash-safe floor will appear after the run.",
+      `Risk score: ${metricMap["Risk score"]?.value || "Not calculated"}`,
+      `Urgency: ${metricMap.Urgency?.value || "Not calculated"}`,
+    ],
+  };
+}
+
 function buildSyncChannels(workspace, lastEventLabel = "Seeded workspace loaded") {
   return workspace.channels.map((channel, index) => ({
     id: channel.toLowerCase().replace(/\s+/g, "-"),
@@ -2115,6 +2139,7 @@ export default function EngineWorkbench({
     () => inputModeConfigs[focus]?.modes?.[0]?.id || "custom",
   );
   const [flowCheckReport, setFlowCheckReport] = useState(null);
+  const [procurementRunReport, setProcurementRunReport] = useState(null);
 
   useEffect(() => {
     try {
@@ -2384,6 +2409,7 @@ export default function EngineWorkbench({
 
     setSelectedModeId(mode.id);
     setFlowCheckReport(null);
+    setProcurementRunReport(null);
     setScenario(nextScenario);
     refreshWorkspace(
       nextScenario,
@@ -2402,6 +2428,7 @@ export default function EngineWorkbench({
     const { name, value } = event.target;
     setSelectedModeId("custom");
     setFlowCheckReport(null);
+    setProcurementRunReport(null);
 
     if (name === "businessType") {
       const nextScenario = {
@@ -2450,6 +2477,7 @@ export default function EngineWorkbench({
   function resetScenario() {
     setScenario(defaultScenario);
     setFlowCheckReport(null);
+    setProcurementRunReport(null);
     setDraftPurchaseOrders([]);
     setSelectedDraftPoId(null);
     setSelectedLivePoId(null);
@@ -2484,6 +2512,9 @@ export default function EngineWorkbench({
   async function runDecisionEngine() {
     if (focus === "supply-chain") {
       setFlowCheckReport(buildFlowCheckReport(scenario));
+    }
+    if (focus === "procurement") {
+      setProcurementRunReport(buildProcurementRunReport(scenario));
     }
 
     refreshWorkspace(
@@ -6245,6 +6276,22 @@ export default function EngineWorkbench({
               <p>{flowCheckReport.summary}</p>
               <ul className="action-list">
                 {flowCheckReport.details.map((detail) => (
+                  <li key={detail}>{detail}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {focus === "procurement" && procurementRunReport ? (
+            <div className="flow-run-result procurement-run-result">
+              <div className="decision-panel-header">
+                <h4>Buying check completed</h4>
+                <span className="tier-chip">{procurementRunReport.checkedAt}</span>
+              </div>
+              <div className="result-value">{procurementRunReport.status}</div>
+              <p>{procurementRunReport.summary}</p>
+              <ul className="action-list">
+                {procurementRunReport.details.map((detail) => (
                   <li key={detail}>{detail}</li>
                 ))}
               </ul>
