@@ -1520,6 +1520,213 @@ textarea {
   white-space: pre-wrap;
 }
 
+.seller-risk-shell {
+  width: min(1360px, calc(100% - 32px));
+  max-width: 1360px;
+}
+
+.seller-risk-metric-grid,
+.seller-risk-grid,
+.seller-risk-focus-list,
+.seller-risk-tab-row,
+.flow-action-list,
+.flow-action-log {
+  display: grid;
+  gap: 14px;
+}
+
+.seller-risk-metric-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 20px;
+}
+
+.seller-risk-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  margin-bottom: 20px;
+}
+
+.seller-risk-field {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.seller-risk-field input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(129, 171, 197, 0.22);
+  border-radius: 14px;
+  background: rgba(3, 12, 18, 0.92);
+  color: var(--text);
+}
+
+.seller-risk-field input:focus {
+  outline: 2px solid rgba(91, 242, 200, 0.3);
+  border-color: rgba(91, 242, 200, 0.45);
+}
+
+.seller-risk-focus-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.seller-risk-focus-list div {
+  min-height: 58px;
+  padding: 14px;
+  border: 1px solid rgba(129, 171, 197, 0.14);
+  border-radius: 14px;
+  background: rgba(3, 14, 20, 0.7);
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.seller-risk-progress {
+  height: 16px;
+  margin: 18px 0;
+  overflow: hidden;
+  border: 1px solid rgba(129, 171, 197, 0.18);
+  border-radius: 999px;
+  background: rgba(3, 14, 20, 0.85);
+}
+
+.seller-risk-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-warm));
+}
+
+.seller-risk-table-card {
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.procurement-buy-table,
+.supply-flow-table {
+  display: grid;
+  margin-top: 18px;
+  border: 1px solid rgba(129, 171, 197, 0.16);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.procurement-buy-row,
+.supply-flow-row {
+  display: grid;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+}
+
+.procurement-buy-row {
+  grid-template-columns: 1.35fr 0.7fr 0.95fr 0.95fr 0.8fr 0.65fr 0.7fr;
+}
+
+.supply-flow-row {
+  grid-template-columns: 1.15fr 0.7fr 0.75fr 0.8fr 0.75fr 1.4fr 1fr 0.7fr;
+}
+
+.procurement-buy-header,
+.supply-flow-header {
+  background: rgba(91, 242, 200, 0.08);
+  color: var(--accent-warm);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.procurement-buy-button,
+.supply-flow-button {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid rgba(129, 171, 197, 0.12);
+  background: rgba(4, 15, 22, 0.7);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.procurement-buy-button small,
+.supply-flow-button small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.seller-risk-selected {
+  margin: 16px 0;
+  padding: 18px;
+  border: 1px solid rgba(129, 171, 197, 0.16);
+  border-radius: 16px;
+  background: rgba(3, 14, 20, 0.72);
+}
+
+.seller-risk-selected h4 {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+}
+
+.seller-risk-selected p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.seller-risk-tab-row {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.seller-risk-tab {
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid rgba(129, 171, 197, 0.2);
+  border-radius: 999px;
+  background: rgba(3, 14, 20, 0.76);
+  color: var(--text);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.seller-risk-tab.active {
+  border-color: rgba(91, 242, 200, 0.48);
+  background: rgba(91, 242, 200, 0.14);
+  color: var(--accent);
+}
+
+.flow-action-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 16px 0;
+}
+
+.flow-action-list div,
+.flow-action-log div {
+  padding: 14px;
+  border: 1px solid rgba(129, 171, 197, 0.14);
+  border-radius: 14px;
+  background: rgba(3, 14, 20, 0.66);
+}
+
+.flow-action-list strong,
+.flow-action-list span,
+.flow-action-log strong,
+.flow-action-log span {
+  display: block;
+}
+
+.flow-action-list span,
+.flow-action-log span {
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .readiness-stack {
   margin-top: 20px;
 }
@@ -1668,6 +1875,10 @@ textarea {
   .sku-proof-grid,
   .sku-intake-controls,
   .sku-decision-counts,
+  .seller-risk-metric-grid,
+  .seller-risk-grid,
+  .seller-risk-focus-list,
+  .flow-action-list,
   .scenario-compare-grid,
   .readiness-filter-grid,
   .readiness-status-grid,
@@ -1743,7 +1954,13 @@ textarea {
 
   .tracker-table-header,
   .tracker-table-row,
-  .sku-risk-row {
+  .sku-risk-row,
+  .procurement-buy-row,
+  .supply-flow-row {
+    grid-template-columns: 1fr;
+  }
+
+  .seller-risk-tab-row {
     grid-template-columns: 1fr;
   }
 

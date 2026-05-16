@@ -1,11 +1,5 @@
-import EngineWorkbench from "../../../components/engine-workbench";
+import ProcurementDecisionView from "../../../components/procurement-decision-view";
 
 export default function ProcurementPage() {
-  return (
-    <EngineWorkbench
-      focus="procurement"
-      intro="Use this view to think like a procurement engine: PO sizing, supplier confidence, reorder timing, and cash-aware buying across different business types."
-      title="Procurement engine"
-    />
-  );
+  return <ProcurementDecisionView />;
 }
