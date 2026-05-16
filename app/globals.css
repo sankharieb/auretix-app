@@ -1321,6 +1321,34 @@ textarea {
   box-shadow: inset 0 0 0 1px rgba(91, 242, 200, 0.12);
 }
 
+.flow-snapshot-grid,
+.flow-cockpit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.flow-snapshot-card {
+  min-height: 118px;
+  padding: 16px;
+  border: 1px solid rgba(129, 171, 197, 0.16);
+  border-radius: 16px;
+  background: rgba(3, 14, 20, 0.72);
+}
+
+.flow-snapshot-card span,
+.flow-snapshot-card small {
+  display: block;
+  color: var(--muted);
+}
+
+.flow-snapshot-card strong {
+  display: block;
+  margin: 8px 0;
+  font-size: 1.65rem;
+}
+
 .readiness-stack {
   margin-top: 20px;
 }
@@ -1462,6 +1490,8 @@ textarea {
   .planning-board,
   .focus-brief-strip,
   .mode-menu,
+  .flow-snapshot-grid,
+  .flow-cockpit-grid,
   .scenario-compare-grid,
   .readiness-filter-grid,
   .readiness-status-grid,

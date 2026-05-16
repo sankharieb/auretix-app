@@ -224,6 +224,35 @@ const inputModeConfigs = {
   },
 };
 
+function buildSupplyChainFlowStats(rawScenario) {
+  const scenario = normalizeScenario(rawScenario);
+  const projectedDailyDemand = Math.max(
+    1,
+    (scenario.monthlyUnits / 30) * (1 + scenario.growthRate / 100),
+  );
+  const daysOfCover = scenario.inventory / projectedDailyDemand;
+  const serviceGapDays = Math.max(0, scenario.leadTime - daysOfCover);
+  const serviceState =
+    serviceGapDays > 14 ? "Service risk" : serviceGapDays > 0 ? "Watch" : "Protected";
+  const flowMove =
+    serviceGapDays > 14
+      ? "Expedite inbound stock and rebalance allocation now."
+      : serviceGapDays > 0
+        ? "Watch exposed channels and keep a backup replenishment path ready."
+        : "Hold the current flow plan and monitor demand movement.";
+
+  return {
+    projectedDailyDemand: projectedDailyDemand.toFixed(1),
+    daysOfCover: daysOfCover.toFixed(1),
+    serviceGapDays: serviceGapDays.toFixed(1),
+    serviceState,
+    flowMove,
+    inboundReliability: Math.round(scenario.supplierReliability),
+    nodeCount: Math.round(scenario.warehouseCount),
+    nodeImbalance: Math.round(scenario.nodeImbalance),
+  };
+}
+
 function buildSyncChannels(workspace, lastEventLabel = "Seeded workspace loaded") {
   return workspace.channels.map((channel, index) => ({
     id: channel.toLowerCase().replace(/\s+/g, "-"),
@@ -2583,6 +2612,8 @@ export default function EngineWorkbench({
   const activeFocusBrief = focusBriefs[focus] || null;
   const inputModeConfig = inputModeConfigs[focus] || inputModeConfigs.overview;
   const isInputHidden = (name) => inputModeConfig.hiddenFields.includes(name);
+  const supplyChainFlowStats = buildSupplyChainFlowStats(scenario);
+  const isSupplyChainFocus = focus === "supply-chain";
   const showDashboard = focus === "overview";
   const selectedItem =
     queue.items.find((item) => item.sku === selectedSku) || queue.items[0] || null;
@@ -3617,6 +3648,45 @@ export default function EngineWorkbench({
           </>
         );
     }
+  }
+
+  function renderSupplyChainInputs() {
+    return (
+      <>
+        <div className="conditional-input-heading">Network and service levers</div>
+        <label htmlFor="warehouseCount">Fulfillment nodes or locations</label>
+        <input
+          id="warehouseCount"
+          min="1"
+          name="warehouseCount"
+          onChange={updateField}
+          type="number"
+          value={scenario.warehouseCount}
+        />
+
+        <label htmlFor="nodeImbalance">Node imbalance risk (%)</label>
+        <input
+          id="nodeImbalance"
+          max="100"
+          min="0"
+          name="nodeImbalance"
+          onChange={updateField}
+          type="number"
+          value={scenario.nodeImbalance}
+        />
+
+        <label htmlFor="seasonalityIntensity">Service volatility pressure (%)</label>
+        <input
+          id="seasonalityIntensity"
+          max="100"
+          min="0"
+          name="seasonalityIntensity"
+          onChange={updateField}
+          type="number"
+          value={scenario.seasonalityIntensity}
+        />
+      </>
+    );
   }
 
   return (
@@ -5971,33 +6041,55 @@ export default function EngineWorkbench({
             </div>
           ) : null}
 
-          <label htmlFor="businessType">{inputModeConfig.businessTypeLabel}</label>
-          <select
-            id="businessType"
-            name="businessType"
-            onChange={updateField}
-            value={scenario.businessType}
-          >
-            <option value="ecommerce">Ecommerce</option>
-            <option value="retail">Retail</option>
-            <option value="wholesale">Wholesale</option>
-            <option value="manufacturing">Manufacturing</option>
-            <option value="distribution">Distribution</option>
-            <option value="consumerBrand">Consumer brand</option>
-          </select>
+          {isSupplyChainFocus ? (
+            <div className="flow-snapshot-grid">
+              <div className="flow-snapshot-card">
+                <span>Coverage</span>
+                <strong>{supplyChainFlowStats.daysOfCover} days</strong>
+                <small>{supplyChainFlowStats.projectedDailyDemand} units/day</small>
+              </div>
+              <div className="flow-snapshot-card">
+                <span>Service gap</span>
+                <strong>{supplyChainFlowStats.serviceGapDays} days</strong>
+                <small>{supplyChainFlowStats.serviceState}</small>
+              </div>
+              <div className="flow-snapshot-card">
+                <span>Inbound reliability</span>
+                <strong>{supplyChainFlowStats.inboundReliability}%</strong>
+                <small>{supplyChainFlowStats.nodeCount} flow nodes</small>
+              </div>
+            </div>
+          ) : (
+            <>
+              <label htmlFor="businessType">{inputModeConfig.businessTypeLabel}</label>
+              <select
+                id="businessType"
+                name="businessType"
+                onChange={updateField}
+                value={scenario.businessType}
+              >
+                <option value="ecommerce">Ecommerce</option>
+                <option value="retail">Retail</option>
+                <option value="wholesale">Wholesale</option>
+                <option value="manufacturing">Manufacturing</option>
+                <option value="distribution">Distribution</option>
+                <option value="consumerBrand">Consumer brand</option>
+              </select>
 
-          <label htmlFor="businessScale">{inputModeConfig.businessScaleLabel}</label>
-          <select
-            id="businessScale"
-            name="businessScale"
-            onChange={updateField}
-            value={scenario.businessScale}
-          >
-            <option value="small">Small business</option>
-            <option value="growth">Growth stage</option>
-            <option value="midmarket">Mid-market</option>
-            <option value="enterprise">Enterprise</option>
-          </select>
+              <label htmlFor="businessScale">{inputModeConfig.businessScaleLabel}</label>
+              <select
+                id="businessScale"
+                name="businessScale"
+                onChange={updateField}
+                value={scenario.businessScale}
+              >
+                <option value="small">Small business</option>
+                <option value="growth">Growth stage</option>
+                <option value="midmarket">Mid-market</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+            </>
+          )}
 
           <label htmlFor="objectiveMode">{inputModeConfig.objectiveLabel}</label>
           <select
@@ -6104,11 +6196,11 @@ export default function EngineWorkbench({
             </>
           )}
 
-          {renderConditionalInputs()}
+          {isSupplyChainFocus ? renderSupplyChainInputs() : renderConditionalInputs()}
 
           <div className="button-row">
             <button className="button button-primary" onClick={runDecisionEngine} type="button">
-              Run Auretix
+              {isSupplyChainFocus ? "Run flow check" : "Run Auretix"}
             </button>
             <button className="button button-secondary" onClick={resetScenario} type="button">
               Reset
@@ -6190,6 +6282,30 @@ export default function EngineWorkbench({
             <h3>{inputModeConfig.outputTitle}</h3>
             <span className={`decision-badge ${decision.badgeLevel}`}>{decision.badgeText}</span>
           </div>
+
+          {isSupplyChainFocus ? (
+            <div className="flow-cockpit-grid">
+              <div className="result-block">
+                <div className="result-label">Flow state</div>
+                <div className="result-value">{supplyChainFlowStats.serviceState}</div>
+                <div className="result-meta">{supplyChainFlowStats.flowMove}</div>
+              </div>
+              <div className="result-block">
+                <div className="result-label">Coverage gap</div>
+                <div className="result-value">{supplyChainFlowStats.serviceGapDays} days</div>
+                <div className="result-meta">
+                  Against a {scenario.leadTime}-day inbound lead time.
+                </div>
+              </div>
+              <div className="result-block">
+                <div className="result-label">Node imbalance</div>
+                <div className="result-value">{supplyChainFlowStats.nodeImbalance}%</div>
+                <div className="result-meta">
+                  Pressure across {supplyChainFlowStats.nodeCount} fulfillment nodes.
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <div className="result-label summary-label">{focusedSummaryLabel}</div>
           <div className="result-summary">{focusedSummary}</div>
