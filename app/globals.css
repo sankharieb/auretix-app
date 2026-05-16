@@ -1554,7 +1554,8 @@ textarea {
   font-weight: 800;
 }
 
-.seller-risk-field input {
+.seller-risk-field input,
+.seller-risk-field textarea {
   width: 100%;
   padding: 14px 16px;
   border: 1px solid rgba(129, 171, 197, 0.22);
@@ -1563,7 +1564,12 @@ textarea {
   color: var(--text);
 }
 
-.seller-risk-field input:focus {
+.seller-risk-field textarea {
+  resize: vertical;
+}
+
+.seller-risk-field input:focus,
+.seller-risk-field textarea:focus {
   outline: 2px solid rgba(91, 242, 200, 0.3);
   border-color: rgba(91, 242, 200, 0.45);
 }
@@ -2106,6 +2112,247 @@ textarea {
   line-height: 1.8;
 }
 
+.partner-network-shell .app-header h1 {
+  max-width: 12ch;
+}
+
+.partner-opportunity-strip,
+.partner-network-grid,
+.partner-model-list,
+.partner-data-preview,
+.partner-request-table {
+  display: grid;
+  gap: 14px;
+}
+
+.partner-opportunity-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 20px;
+}
+
+.partner-opportunity-card {
+  min-height: 180px;
+  padding: 18px;
+  border: 1px solid rgba(129, 171, 197, 0.18);
+  border-radius: 18px;
+  background: rgba(4, 15, 22, 0.78);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.partner-opportunity-card:hover {
+  transform: translateY(-2px);
+}
+
+.partner-opportunity-card.active {
+  border-color: rgba(91, 242, 200, 0.45);
+  background: linear-gradient(180deg, rgba(9, 53, 43, 0.7), rgba(4, 15, 22, 0.9));
+}
+
+.partner-opportunity-card strong,
+.partner-opportunity-card small,
+.partner-opportunity-card em {
+  display: block;
+}
+
+.partner-opportunity-card strong {
+  margin: 12px 0 8px;
+  font-size: 1.35rem;
+}
+
+.partner-opportunity-card small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.partner-opportunity-card em {
+  margin-top: 14px;
+  color: var(--accent);
+  font-style: normal;
+  font-weight: 900;
+}
+
+.partner-network-grid {
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  align-items: start;
+  margin-bottom: 20px;
+}
+
+.partner-selected-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 16px;
+  margin: 18px 0;
+  padding: 18px;
+  border: 1px solid rgba(129, 171, 197, 0.16);
+  border-radius: 18px;
+  background: rgba(3, 14, 20, 0.68);
+}
+
+.partner-selected-summary h4 {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+}
+
+.partner-selected-summary p,
+.partner-guardrail-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.partner-value-box {
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  border: 1px solid rgba(91, 242, 200, 0.22);
+  border-radius: 16px;
+  background: rgba(91, 242, 200, 0.08);
+  text-align: center;
+}
+
+.partner-value-box strong {
+  font-size: 1.8rem;
+}
+
+.partner-value-box span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.partner-data-preview {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid rgba(129, 171, 197, 0.16);
+  border-radius: 16px;
+  background: rgba(3, 14, 20, 0.66);
+}
+
+.partner-data-preview span {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.partner-disclosure-box {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 18px;
+  border: 1px solid rgba(255, 201, 107, 0.24);
+  border-radius: 18px;
+  background: rgba(255, 201, 107, 0.07);
+}
+
+.partner-disclosure-box h4 {
+  margin: 0;
+}
+
+.partner-disclosure-box label {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.partner-model-list div,
+.partner-guardrail-card {
+  padding: 16px;
+  border: 1px solid rgba(129, 171, 197, 0.14);
+  border-radius: 16px;
+  background: rgba(3, 14, 20, 0.68);
+}
+
+.partner-model-list strong,
+.partner-model-list span,
+.partner-model-list small {
+  display: block;
+}
+
+.partner-model-list span {
+  margin-top: 7px;
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.partner-model-list small {
+  margin-top: 7px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.partner-guardrail-card {
+  margin-top: 16px;
+}
+
+.partner-run-result {
+  margin-bottom: 20px;
+}
+
+.partner-request-card {
+  overflow: hidden;
+}
+
+.partner-request-table {
+  margin-top: 18px;
+  border: 1px solid rgba(129, 171, 197, 0.16);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.partner-request-row {
+  display: grid;
+  grid-template-columns: 1fr 0.85fr 0.75fr 0.95fr 0.9fr 1.4fr;
+  gap: 12px;
+  align-items: start;
+  padding: 14px 16px;
+}
+
+.partner-request-header {
+  background: rgba(91, 242, 200, 0.08);
+  color: var(--accent-warm);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.partner-request-item {
+  border-top: 1px solid rgba(129, 171, 197, 0.12);
+  background: rgba(4, 15, 22, 0.72);
+}
+
+.partner-request-item strong,
+.partner-request-item small {
+  display: block;
+}
+
+.partner-request-item small {
+  margin-top: 5px;
+  color: var(--muted);
+}
+
+.partner-status-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.partner-status-actions button {
+  min-height: 34px;
+  border: 1px solid rgba(129, 171, 197, 0.2);
+  border-radius: 999px;
+  background: rgba(3, 14, 20, 0.72);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
 .readiness-stack {
   margin-top: 20px;
 }
@@ -2263,6 +2510,10 @@ textarea {
   .rescue-next-meta,
   .data-checklist-row,
   .data-category-tabs,
+  .partner-opportunity-strip,
+  .partner-network-grid,
+  .partner-selected-summary,
+  .partner-request-row,
   .scenario-compare-grid,
   .readiness-filter-grid,
   .readiness-status-grid,

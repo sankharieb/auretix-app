@@ -273,6 +273,7 @@ export default function SkuRiskMvp() {
         </div>
         <nav className="app-nav">
           <Link href="/app">Rescue board</Link>
+          <Link href="/app/network">Network</Link>
           <Link href="/app/sku-risk">SKU risk</Link>
           <Link href="/app/procurement">Procurement</Link>
           <Link href="/app/supply-chain">Supply chain</Link>
