@@ -2119,6 +2119,7 @@ textarea {
 .partner-opportunity-strip,
 .partner-network-grid,
 .partner-model-list,
+.partner-directory-list,
 .partner-data-preview,
 .partner-request-table {
   display: grid;
@@ -2238,6 +2239,62 @@ textarea {
   line-height: 1.45;
 }
 
+.partner-directory-picker {
+  margin: 16px 0;
+}
+
+.partner-directory-picker .results-header h4 {
+  margin: 0;
+}
+
+.partner-source-chip {
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(91, 242, 200, 0.12);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.partner-directory-list {
+  margin-top: 12px;
+}
+
+.partner-directory-card {
+  padding: 15px;
+  border: 1px solid rgba(129, 171, 197, 0.16);
+  border-radius: 16px;
+  background: rgba(3, 14, 20, 0.68);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.partner-directory-card.active {
+  border-color: rgba(91, 242, 200, 0.45);
+  background: rgba(91, 242, 200, 0.1);
+}
+
+.partner-directory-card strong,
+.partner-directory-card span,
+.partner-directory-card small {
+  display: block;
+}
+
+.partner-directory-card span {
+  margin-top: 7px;
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.partner-directory-card small {
+  margin-top: 7px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .partner-disclosure-box {
   display: grid;
   gap: 12px;
@@ -2351,6 +2408,15 @@ textarea {
   font-size: 0.78rem;
   font-weight: 900;
   cursor: pointer;
+}
+
+.partner-status-actions button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.partner-match-sent {
+  color: var(--accent);
 }
 
 .readiness-stack {

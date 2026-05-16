@@ -40,6 +40,9 @@ The schema creates:
 - `workspaces`
 - `decision_runs`
 - `audit_events`
+- `partner_directory`
+- `partner_match_requests`
+- integration and ROI proof tables
 - Row-level security policies for company-scoped access
 
 After running the SQL, verify the connection from this repo:

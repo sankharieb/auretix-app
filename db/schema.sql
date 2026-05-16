@@ -84,6 +84,50 @@ create table if not exists roi_snapshots (
   created_at timestamptz not null default now()
 );
 
+create table if not exists partner_directory (
+  id text primary key,
+  company_id text not null references companies(id) on delete cascade,
+  workspace_id text references workspaces(id) on delete set null,
+  partner_type text not null check (
+    partner_type in ('freight', 'backup-supplier', 'wholesale', 'third-party-logistics')
+  ),
+  name text not null,
+  coverage text not null,
+  fit_summary text not null,
+  contact_method text,
+  status text not null default 'candidate',
+  disclosure text not null,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists partner_match_requests (
+  id text primary key,
+  company_id text not null references companies(id) on delete cascade,
+  workspace_id text references workspaces(id) on delete set null,
+  partner_type text not null check (
+    partner_type in ('freight', 'backup-supplier', 'wholesale', 'third-party-logistics')
+  ),
+  service text not null,
+  sku text not null,
+  product text not null,
+  problem text not null,
+  estimated_value integer not null default 0,
+  deadline text,
+  data_preview jsonb not null default '[]'::jsonb,
+  contact_email text not null,
+  notes text,
+  status text not null default 'Pending match',
+  selected_partner_id text references partner_directory(id) on delete set null,
+  matched_partner_snapshot jsonb,
+  disclosure text not null,
+  metadata jsonb not null default '{}'::jsonb,
+  matched_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create index if not exists decision_runs_workspace_created_idx
   on decision_runs (workspace_id, created_at desc);
 
@@ -95,6 +139,12 @@ create index if not exists integration_accounts_workspace_provider_idx
 
 create index if not exists roi_snapshots_workspace_created_idx
   on roi_snapshots (workspace_id, created_at desc);
+
+create index if not exists partner_directory_company_type_idx
+  on partner_directory (company_id, partner_type);
+
+create index if not exists partner_match_requests_workspace_created_idx
+  on partner_match_requests (workspace_id, created_at desc);
 
 alter table if exists users
   add column if not exists auth_user_id uuid;
@@ -136,6 +186,8 @@ alter table decision_runs enable row level security;
 alter table audit_events enable row level security;
 alter table integration_accounts enable row level security;
 alter table roi_snapshots enable row level security;
+alter table partner_directory enable row level security;
+alter table partner_match_requests enable row level security;
 
 drop policy if exists "company members can read company" on companies;
 create policy "company members can read company"
@@ -243,4 +295,51 @@ create policy "decision users can create roi snapshots"
   with check (
     company_id = current_auretix_company_id()
     and current_auretix_role() in ('owner', 'admin', 'operator', 'finance')
+  );
+
+drop policy if exists "company members can read partner directory" on partner_directory;
+create policy "company members can read partner directory"
+  on partner_directory
+  for select
+  using (company_id = current_auretix_company_id());
+
+drop policy if exists "operators can manage partner directory" on partner_directory;
+create policy "operators can manage partner directory"
+  on partner_directory
+  for all
+  using (
+    company_id = current_auretix_company_id()
+    and current_auretix_role() in ('owner', 'admin', 'operator')
+  )
+  with check (
+    company_id = current_auretix_company_id()
+    and current_auretix_role() in ('owner', 'admin', 'operator')
+  );
+
+drop policy if exists "company members can read partner match requests" on partner_match_requests;
+create policy "company members can read partner match requests"
+  on partner_match_requests
+  for select
+  using (company_id = current_auretix_company_id());
+
+drop policy if exists "decision users can create partner match requests" on partner_match_requests;
+create policy "decision users can create partner match requests"
+  on partner_match_requests
+  for insert
+  with check (
+    company_id = current_auretix_company_id()
+    and current_auretix_role() in ('owner', 'admin', 'operator', 'finance')
+  );
+
+drop policy if exists "operators can update partner match requests" on partner_match_requests;
+create policy "operators can update partner match requests"
+  on partner_match_requests
+  for update
+  using (
+    company_id = current_auretix_company_id()
+    and current_auretix_role() in ('owner', 'admin', 'operator')
+  )
+  with check (
+    company_id = current_auretix_company_id()
+    and current_auretix_role() in ('owner', 'admin', 'operator')
   );

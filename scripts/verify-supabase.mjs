@@ -76,6 +76,8 @@ const checks = [
   { table: "audit_events", select: "id,workspace_id,action,created_at" },
   { table: "integration_accounts", select: "id,workspace_id,provider,status" },
   { table: "roi_snapshots", select: "id,workspace_id,proof_status,proof_score" },
+  { table: "partner_directory", select: "id,company_id,partner_type,name,status" },
+  { table: "partner_match_requests", select: "id,workspace_id,partner_type,status" },
 ];
 
 const results = [];
