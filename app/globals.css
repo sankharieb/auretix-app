@@ -1349,6 +1349,20 @@ textarea {
   font-size: 1.65rem;
 }
 
+.flow-run-result {
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid rgba(91, 242, 200, 0.3);
+  border-radius: 16px;
+  background: rgba(91, 242, 200, 0.09);
+}
+
+.flow-run-result p {
+  margin: 10px 0 14px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .readiness-stack {
   margin-top: 20px;
 }

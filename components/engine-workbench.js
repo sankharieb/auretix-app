@@ -253,6 +253,26 @@ function buildSupplyChainFlowStats(rawScenario) {
   };
 }
 
+function buildFlowCheckReport(rawScenario) {
+  const stats = buildSupplyChainFlowStats(rawScenario);
+  const checkedAt = new Date().toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  return {
+    checkedAt,
+    status: stats.serviceState,
+    summary: stats.flowMove,
+    details: [
+      `Coverage: ${stats.daysOfCover} days`,
+      `Service gap: ${stats.serviceGapDays} days`,
+      `Inbound reliability: ${stats.inboundReliability}%`,
+      `Node imbalance: ${stats.nodeImbalance}%`,
+    ],
+  };
+}
+
 function buildSyncChannels(workspace, lastEventLabel = "Seeded workspace loaded") {
   return workspace.channels.map((channel, index) => ({
     id: channel.toLowerCase().replace(/\s+/g, "-"),
@@ -2094,6 +2114,7 @@ export default function EngineWorkbench({
   const [selectedModeId, setSelectedModeId] = useState(
     () => inputModeConfigs[focus]?.modes?.[0]?.id || "custom",
   );
+  const [flowCheckReport, setFlowCheckReport] = useState(null);
 
   useEffect(() => {
     try {
@@ -2362,6 +2383,7 @@ export default function EngineWorkbench({
     });
 
     setSelectedModeId(mode.id);
+    setFlowCheckReport(null);
     setScenario(nextScenario);
     refreshWorkspace(
       nextScenario,
@@ -2379,6 +2401,7 @@ export default function EngineWorkbench({
   function updateField(event) {
     const { name, value } = event.target;
     setSelectedModeId("custom");
+    setFlowCheckReport(null);
 
     if (name === "businessType") {
       const nextScenario = {
@@ -2426,6 +2449,7 @@ export default function EngineWorkbench({
 
   function resetScenario() {
     setScenario(defaultScenario);
+    setFlowCheckReport(null);
     setDraftPurchaseOrders([]);
     setSelectedDraftPoId(null);
     setSelectedLivePoId(null);
@@ -2458,6 +2482,10 @@ export default function EngineWorkbench({
   }
 
   async function runDecisionEngine() {
+    if (focus === "supply-chain") {
+      setFlowCheckReport(buildFlowCheckReport(scenario));
+    }
+
     refreshWorkspace(
       scenario,
       workspaceState,
@@ -6200,12 +6228,28 @@ export default function EngineWorkbench({
 
           <div className="button-row">
             <button className="button button-primary" onClick={runDecisionEngine} type="button">
-              {isSupplyChainFocus ? "Run flow check" : "Run Auretix"}
+              {isSupplyChainFocus ? "Check flow now" : "Run Auretix"}
             </button>
             <button className="button button-secondary" onClick={resetScenario} type="button">
               Reset
             </button>
           </div>
+
+          {isSupplyChainFocus && flowCheckReport ? (
+            <div className="flow-run-result">
+              <div className="decision-panel-header">
+                <h4>Flow check completed</h4>
+                <span className="tier-chip">{flowCheckReport.checkedAt}</span>
+              </div>
+              <div className="result-value">{flowCheckReport.status}</div>
+              <p>{flowCheckReport.summary}</p>
+              <ul className="action-list">
+                {flowCheckReport.details.map((detail) => (
+                  <li key={detail}>{detail}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           <div className="engine-pillars-card">
             <div className="result-label">5 core engine pillars</div>
