@@ -237,7 +237,7 @@ export default function ReadinessBoard() {
           </p>
         </div>
         <nav className="app-nav">
-          <Link href="/app">Overview</Link>
+          <Link href="/app">Rescue board</Link>
           <Link href="/app/procurement">Procurement</Link>
           <Link href="/app/supply-chain">Supply chain</Link>
           <Link href="/app/readiness">Readiness</Link>
