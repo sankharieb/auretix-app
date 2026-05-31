@@ -43,7 +43,16 @@ The schema creates:
 - `partner_directory`
 - `partner_match_requests`
 - integration and ROI proof tables
+- Moat Engine tables for risk scores, recommendations, outcomes, supplier
+  intelligence, partner match outcomes, daily queue, and profit impact records
 - Row-level security policies for company-scoped access
+
+If you already ran the older schema, run this migration instead of replacing
+the whole database:
+
+```sql
+-- Paste the contents of db/migrations/20260530_moat_engine.sql here.
+```
 
 After running the SQL, verify the connection from this repo:
 

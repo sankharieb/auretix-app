@@ -1498,6 +1498,16 @@ textarea {
   color: var(--accent-warm);
 }
 
+.sku-priority.high {
+  background: rgba(255, 170, 96, 0.14);
+  color: #ffb36f;
+}
+
+.sku-priority.low {
+  background: rgba(129, 171, 197, 0.12);
+  color: var(--muted);
+}
+
 .sku-priority.healthy {
   background: rgba(91, 242, 200, 0.14);
   color: var(--accent);
@@ -1898,6 +1908,227 @@ textarea {
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.moat-shell .app-header h1 {
+  max-width: 13ch;
+}
+
+.moat-status-card,
+.moat-command-grid,
+.moat-profit-grid,
+.moat-risk-index,
+.moat-selected-body,
+.moat-impact-strip {
+  display: grid;
+  gap: 18px;
+}
+
+.moat-status-card {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 22px 24px;
+  border: 1px solid rgba(91, 242, 200, 0.25);
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(20, 63, 55, 0.78), rgba(6, 17, 26, 0.96));
+  box-shadow: var(--shadow);
+}
+
+.moat-status-warning {
+  border-color: rgba(255, 201, 107, 0.38);
+  background: linear-gradient(135deg, rgba(80, 55, 26, 0.7), rgba(6, 17, 26, 0.96));
+}
+
+.moat-status-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.35rem;
+}
+
+.moat-status-card p {
+  max-width: 760px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.moat-command-grid {
+  grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.28fr);
+  margin-bottom: 24px;
+}
+
+.moat-decision-list,
+.moat-supplier-list,
+.moat-history-list {
+  display: grid;
+  gap: 12px;
+}
+
+.moat-decision-item {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  padding: 16px;
+  border: 1px solid rgba(129, 171, 197, 0.16);
+  border-radius: 18px;
+  background: rgba(3, 14, 20, 0.72);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.moat-decision-item:hover,
+.moat-decision-item.active {
+  border-color: rgba(91, 242, 200, 0.44);
+  background: rgba(22, 64, 58, 0.52);
+}
+
+.moat-decision-item strong,
+.moat-decision-item small,
+.moat-decision-item em {
+  display: block;
+}
+
+.moat-decision-item small {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.moat-decision-item em {
+  color: var(--accent-warm);
+  font-style: normal;
+  font-weight: 900;
+}
+
+.moat-risk-index,
+.moat-selected-body {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.moat-risk-index > div,
+.moat-selected-body > div {
+  padding: 18px;
+  border: 1px solid rgba(129, 171, 197, 0.15);
+  border-radius: 18px;
+  background: rgba(3, 14, 20, 0.64);
+}
+
+.moat-risk-index strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.55rem;
+}
+
+.moat-risk-index p,
+.moat-selected-body p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.moat-action-row {
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.moat-run-result {
+  margin-top: 16px;
+}
+
+.moat-profit-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 24px;
+}
+
+.moat-impact-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.moat-impact-strip div,
+.moat-supplier-list div,
+.moat-partner-grid div {
+  padding: 16px;
+  border: 1px solid rgba(129, 171, 197, 0.15);
+  border-radius: 18px;
+  background: rgba(3, 14, 20, 0.64);
+}
+
+.moat-impact-strip span,
+.moat-supplier-list span,
+.moat-partner-grid span {
+  display: block;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.moat-impact-strip strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.35rem;
+}
+
+.moat-supplier-list strong,
+.moat-partner-grid strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1.05rem;
+}
+
+.moat-supplier-list small,
+.moat-partner-grid small {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.moat-partner-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.moat-history-card {
+  margin-top: 24px;
+}
+
+.moat-history-item {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.8fr) minmax(220px, 1.4fr) 0.7fr 0.7fr 0.7fr minmax(220px, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid rgba(129, 171, 197, 0.12);
+  border-radius: 16px;
+  background: rgba(3, 14, 20, 0.6);
+}
+
+.moat-history-item span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.moat-history-item strong,
+.moat-history-item small {
+  display: block;
+}
+
+.moat-history-item strong {
+  color: var(--text);
+}
+
+.moat-history-item small {
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.moat-outcome-actions {
+  justify-content: flex-start;
+}
+
+.moat-outcome-note {
+  margin-top: 16px;
 }
 
 .data-readiness-shell .app-header h1 {
@@ -2584,6 +2815,14 @@ textarea {
   .readiness-filter-grid,
   .readiness-status-grid,
   .readiness-board-grid,
+  .moat-status-card,
+  .moat-command-grid,
+  .moat-profit-grid,
+  .moat-risk-index,
+  .moat-selected-body,
+  .moat-impact-strip,
+  .moat-partner-grid,
+  .moat-history-item,
   .result {
     grid-template-columns: 1fr;
   }
@@ -2680,6 +2919,11 @@ textarea {
   }
 
   .readiness-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .moat-action-row {
+    display: grid;
     grid-template-columns: 1fr;
   }
 }

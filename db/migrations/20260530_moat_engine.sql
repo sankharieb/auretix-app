@@ -1,132 +1,6 @@
-create table if not exists companies (
-  id text primary key,
-  name text not null,
-  slug text not null unique,
-  created_at timestamptz not null default now()
-);
-
-create table if not exists users (
-  id text primary key,
-  auth_user_id uuid,
-  company_id text not null references companies(id) on delete cascade,
-  name text not null,
-  email text not null unique,
-  role text not null check (role in ('owner', 'admin', 'operator', 'finance', 'viewer')),
-  created_at timestamptz not null default now()
-);
-
-create table if not exists workspaces (
-  id text primary key,
-  company_id text not null references companies(id) on delete cascade,
-  name text not null,
-  business_type text not null,
-  scenario jsonb not null,
-  workspace_state jsonb not null,
-  draft_purchase_orders jsonb not null default '[]'::jsonb,
-  supplier_packets jsonb not null default '[]'::jsonb,
-  supplier_strategy_memory jsonb not null default '{}'::jsonb,
-  approved_reallocation_plans jsonb not null default '{}'::jsonb,
-  metadata jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create table if not exists decision_runs (
-  id text primary key,
-  company_id text not null references companies(id) on delete cascade,
-  workspace_id text not null references workspaces(id) on delete cascade,
-  trigger text not null,
-  scenario jsonb not null,
-  decision jsonb not null,
-  queue jsonb not null,
-  summary jsonb not null,
-  created_at timestamptz not null default now()
-);
-
-create table if not exists audit_events (
-  id text primary key,
-  company_id text not null references companies(id) on delete cascade,
-  workspace_id text references workspaces(id) on delete set null,
-  actor_id text,
-  action text not null,
-  detail text not null,
-  created_at timestamptz not null default now()
-);
-
-create table if not exists integration_accounts (
-  id text primary key,
-  company_id text not null references companies(id) on delete cascade,
-  workspace_id text references workspaces(id) on delete cascade,
-  provider text not null check (provider in ('shopify', 'amazon', 'quickbooks')),
-  account_label text,
-  external_account_id text,
-  status text not null default 'authorized',
-  scopes text,
-  token_status text,
-  metadata jsonb not null default '{}'::jsonb,
-  connected_at timestamptz not null default now(),
-  last_sync_at timestamptz,
-  updated_at timestamptz not null default now(),
-  unique (company_id, provider, external_account_id)
-);
-
-create table if not exists roi_snapshots (
-  id text primary key,
-  company_id text not null references companies(id) on delete cascade,
-  workspace_id text not null references workspaces(id) on delete cascade,
-  decision_run_id text references decision_runs(id) on delete set null,
-  proof_status text not null,
-  proof_score integer not null,
-  modeled_monthly_impact integer not null,
-  modeled_annual_impact integer not null,
-  metrics jsonb not null,
-  proof_inputs jsonb not null,
-  created_at timestamptz not null default now()
-);
-
-create table if not exists partner_directory (
-  id text primary key,
-  company_id text not null references companies(id) on delete cascade,
-  workspace_id text references workspaces(id) on delete set null,
-  partner_type text not null check (
-    partner_type in ('freight', 'backup-supplier', 'wholesale', 'third-party-logistics')
-  ),
-  name text not null,
-  coverage text not null,
-  fit_summary text not null,
-  contact_method text,
-  status text not null default 'candidate',
-  disclosure text not null,
-  metadata jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create table if not exists partner_match_requests (
-  id text primary key,
-  company_id text not null references companies(id) on delete cascade,
-  workspace_id text references workspaces(id) on delete set null,
-  partner_type text not null check (
-    partner_type in ('freight', 'backup-supplier', 'wholesale', 'third-party-logistics')
-  ),
-  service text not null,
-  sku text not null,
-  product text not null,
-  problem text not null,
-  estimated_value integer not null default 0,
-  deadline text,
-  data_preview jsonb not null default '[]'::jsonb,
-  contact_email text not null,
-  notes text,
-  status text not null default 'Pending match',
-  selected_partner_id text references partner_directory(id) on delete set null,
-  matched_partner_snapshot jsonb,
-  disclosure text not null,
-  metadata jsonb not null default '{}'::jsonb,
-  matched_at timestamptz,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
+-- Auretix Moat Engine migration.
+-- Run this after the base schema to add proprietary risk, outcome, supplier,
+-- partner, and profit impact learning tables.
 
 create table if not exists risk_scores (
   id text primary key,
@@ -269,24 +143,6 @@ create table if not exists profit_impact_records (
   created_at timestamptz not null default now()
 );
 
-create index if not exists decision_runs_workspace_created_idx
-  on decision_runs (workspace_id, created_at desc);
-
-create index if not exists audit_events_workspace_created_idx
-  on audit_events (workspace_id, created_at desc);
-
-create index if not exists integration_accounts_workspace_provider_idx
-  on integration_accounts (workspace_id, provider);
-
-create index if not exists roi_snapshots_workspace_created_idx
-  on roi_snapshots (workspace_id, created_at desc);
-
-create index if not exists partner_directory_company_type_idx
-  on partner_directory (company_id, partner_type);
-
-create index if not exists partner_match_requests_workspace_created_idx
-  on partner_match_requests (workspace_id, created_at desc);
-
 create index if not exists risk_scores_workspace_created_idx
   on risk_scores (workspace_id, created_at desc);
 
@@ -311,48 +167,6 @@ create index if not exists daily_decision_queue_workspace_date_idx
 create index if not exists profit_impact_records_recommendation_idx
   on profit_impact_records (recommendation_id);
 
-alter table if exists users
-  add column if not exists auth_user_id uuid;
-
-create unique index if not exists users_auth_user_id_idx
-  on users (auth_user_id)
-  where auth_user_id is not null;
-
-create or replace function current_auretix_company_id()
-returns text
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select company_id
-  from users
-  where auth_user_id = auth.uid()
-  limit 1
-$$;
-
-create or replace function current_auretix_role()
-returns text
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select role
-  from users
-  where auth_user_id = auth.uid()
-  limit 1
-$$;
-
-alter table companies enable row level security;
-alter table users enable row level security;
-alter table workspaces enable row level security;
-alter table decision_runs enable row level security;
-alter table audit_events enable row level security;
-alter table integration_accounts enable row level security;
-alter table roi_snapshots enable row level security;
-alter table partner_directory enable row level security;
-alter table partner_match_requests enable row level security;
 alter table risk_scores enable row level security;
 alter table decision_recommendations enable row level security;
 alter table decision_outcomes enable row level security;
@@ -362,171 +176,14 @@ alter table partner_match_outcomes enable row level security;
 alter table daily_decision_queue enable row level security;
 alter table profit_impact_records enable row level security;
 
-drop policy if exists "company members can read company" on companies;
-create policy "company members can read company"
-  on companies
-  for select
-  using (id = current_auretix_company_id());
-
-drop policy if exists "company members can read users" on users;
-create policy "company members can read users"
-  on users
-  for select
-  using (company_id = current_auretix_company_id());
-
-drop policy if exists "admins can manage users" on users;
-create policy "admins can manage users"
-  on users
-  for all
-  using (
-    company_id = current_auretix_company_id()
-    and current_auretix_role() in ('owner', 'admin')
-  )
-  with check (
-    company_id = current_auretix_company_id()
-    and current_auretix_role() in ('owner', 'admin')
-  );
-
-drop policy if exists "company members can read workspaces" on workspaces;
-create policy "company members can read workspaces"
-  on workspaces
-  for select
-  using (company_id = current_auretix_company_id());
-
-drop policy if exists "operators can write workspaces" on workspaces;
-create policy "operators can write workspaces"
-  on workspaces
-  for all
-  using (
-    company_id = current_auretix_company_id()
-    and current_auretix_role() in ('owner', 'admin', 'operator')
-  )
-  with check (
-    company_id = current_auretix_company_id()
-    and current_auretix_role() in ('owner', 'admin', 'operator')
-  );
-
-drop policy if exists "company members can read decision runs" on decision_runs;
-create policy "company members can read decision runs"
-  on decision_runs
-  for select
-  using (company_id = current_auretix_company_id());
-
-drop policy if exists "decision users can create runs" on decision_runs;
-create policy "decision users can create runs"
-  on decision_runs
-  for insert
-  with check (
-    company_id = current_auretix_company_id()
-    and current_auretix_role() in ('owner', 'admin', 'operator', 'finance')
-  );
-
-drop policy if exists "company members can read audit events" on audit_events;
-create policy "company members can read audit events"
-  on audit_events
-  for select
-  using (company_id = current_auretix_company_id());
-
-drop policy if exists "operators can create audit events" on audit_events;
-create policy "operators can create audit events"
-  on audit_events
-  for insert
-  with check (
-    company_id = current_auretix_company_id()
-    and current_auretix_role() in ('owner', 'admin', 'operator', 'finance')
-  );
-
-drop policy if exists "company members can read integration accounts" on integration_accounts;
-create policy "company members can read integration accounts"
-  on integration_accounts
-  for select
-  using (company_id = current_auretix_company_id());
-
-drop policy if exists "operators can manage integration accounts" on integration_accounts;
-create policy "operators can manage integration accounts"
-  on integration_accounts
-  for all
-  using (
-    company_id = current_auretix_company_id()
-    and current_auretix_role() in ('owner', 'admin', 'operator')
-  )
-  with check (
-    company_id = current_auretix_company_id()
-    and current_auretix_role() in ('owner', 'admin', 'operator')
-  );
-
-drop policy if exists "company members can read roi snapshots" on roi_snapshots;
-create policy "company members can read roi snapshots"
-  on roi_snapshots
-  for select
-  using (company_id = current_auretix_company_id());
-
-drop policy if exists "decision users can create roi snapshots" on roi_snapshots;
-create policy "decision users can create roi snapshots"
-  on roi_snapshots
-  for insert
-  with check (
-    company_id = current_auretix_company_id()
-    and current_auretix_role() in ('owner', 'admin', 'operator', 'finance')
-  );
-
-drop policy if exists "company members can read partner directory" on partner_directory;
-create policy "company members can read partner directory"
-  on partner_directory
-  for select
-  using (company_id = current_auretix_company_id());
-
-drop policy if exists "operators can manage partner directory" on partner_directory;
-create policy "operators can manage partner directory"
-  on partner_directory
-  for all
-  using (
-    company_id = current_auretix_company_id()
-    and current_auretix_role() in ('owner', 'admin', 'operator')
-  )
-  with check (
-    company_id = current_auretix_company_id()
-    and current_auretix_role() in ('owner', 'admin', 'operator')
-  );
-
-drop policy if exists "company members can read partner match requests" on partner_match_requests;
-create policy "company members can read partner match requests"
-  on partner_match_requests
-  for select
-  using (company_id = current_auretix_company_id());
-
-drop policy if exists "decision users can create partner match requests" on partner_match_requests;
-create policy "decision users can create partner match requests"
-  on partner_match_requests
-  for insert
-  with check (
-    company_id = current_auretix_company_id()
-    and current_auretix_role() in ('owner', 'admin', 'operator', 'finance')
-  );
-
-drop policy if exists "operators can update partner match requests" on partner_match_requests;
-create policy "operators can update partner match requests"
-  on partner_match_requests
-  for update
-  using (
-    company_id = current_auretix_company_id()
-    and current_auretix_role() in ('owner', 'admin', 'operator')
-  )
-  with check (
-    company_id = current_auretix_company_id()
-    and current_auretix_role() in ('owner', 'admin', 'operator')
-  );
-
 drop policy if exists "company members can read risk scores" on risk_scores;
 create policy "company members can read risk scores"
-  on risk_scores
-  for select
+  on risk_scores for select
   using (company_id = current_auretix_company_id());
 
 drop policy if exists "decision users can create risk scores" on risk_scores;
 create policy "decision users can create risk scores"
-  on risk_scores
-  for insert
+  on risk_scores for insert
   with check (
     company_id = current_auretix_company_id()
     and current_auretix_role() in ('owner', 'admin', 'operator', 'finance')
@@ -534,14 +191,12 @@ create policy "decision users can create risk scores"
 
 drop policy if exists "company members can read decision recommendations" on decision_recommendations;
 create policy "company members can read decision recommendations"
-  on decision_recommendations
-  for select
+  on decision_recommendations for select
   using (company_id = current_auretix_company_id());
 
 drop policy if exists "decision users can create decision recommendations" on decision_recommendations;
 create policy "decision users can create decision recommendations"
-  on decision_recommendations
-  for insert
+  on decision_recommendations for insert
   with check (
     company_id = current_auretix_company_id()
     and current_auretix_role() in ('owner', 'admin', 'operator', 'finance')
@@ -549,8 +204,7 @@ create policy "decision users can create decision recommendations"
 
 drop policy if exists "decision users can update decision recommendations" on decision_recommendations;
 create policy "decision users can update decision recommendations"
-  on decision_recommendations
-  for update
+  on decision_recommendations for update
   using (
     company_id = current_auretix_company_id()
     and current_auretix_role() in ('owner', 'admin', 'operator', 'finance')
@@ -562,14 +216,12 @@ create policy "decision users can update decision recommendations"
 
 drop policy if exists "company members can read decision outcomes" on decision_outcomes;
 create policy "company members can read decision outcomes"
-  on decision_outcomes
-  for select
+  on decision_outcomes for select
   using (company_id = current_auretix_company_id());
 
 drop policy if exists "decision users can create decision outcomes" on decision_outcomes;
 create policy "decision users can create decision outcomes"
-  on decision_outcomes
-  for insert
+  on decision_outcomes for insert
   with check (
     company_id = current_auretix_company_id()
     and current_auretix_role() in ('owner', 'admin', 'operator', 'finance')
@@ -577,14 +229,12 @@ create policy "decision users can create decision outcomes"
 
 drop policy if exists "company members can read supplier intelligence" on supplier_intelligence;
 create policy "company members can read supplier intelligence"
-  on supplier_intelligence
-  for select
+  on supplier_intelligence for select
   using (company_id = current_auretix_company_id());
 
 drop policy if exists "operators can manage supplier intelligence" on supplier_intelligence;
 create policy "operators can manage supplier intelligence"
-  on supplier_intelligence
-  for all
+  on supplier_intelligence for all
   using (
     company_id = current_auretix_company_id()
     and current_auretix_role() in ('owner', 'admin', 'operator')
@@ -596,14 +246,12 @@ create policy "operators can manage supplier intelligence"
 
 drop policy if exists "company members can read supplier performance events" on supplier_performance_events;
 create policy "company members can read supplier performance events"
-  on supplier_performance_events
-  for select
+  on supplier_performance_events for select
   using (company_id = current_auretix_company_id());
 
 drop policy if exists "operators can create supplier performance events" on supplier_performance_events;
 create policy "operators can create supplier performance events"
-  on supplier_performance_events
-  for insert
+  on supplier_performance_events for insert
   with check (
     company_id = current_auretix_company_id()
     and current_auretix_role() in ('owner', 'admin', 'operator')
@@ -611,14 +259,12 @@ create policy "operators can create supplier performance events"
 
 drop policy if exists "company members can read partner match outcomes" on partner_match_outcomes;
 create policy "company members can read partner match outcomes"
-  on partner_match_outcomes
-  for select
+  on partner_match_outcomes for select
   using (company_id = current_auretix_company_id());
 
 drop policy if exists "operators can manage partner match outcomes" on partner_match_outcomes;
 create policy "operators can manage partner match outcomes"
-  on partner_match_outcomes
-  for all
+  on partner_match_outcomes for all
   using (
     company_id = current_auretix_company_id()
     and current_auretix_role() in ('owner', 'admin', 'operator')
@@ -630,14 +276,12 @@ create policy "operators can manage partner match outcomes"
 
 drop policy if exists "company members can read daily decision queue" on daily_decision_queue;
 create policy "company members can read daily decision queue"
-  on daily_decision_queue
-  for select
+  on daily_decision_queue for select
   using (company_id = current_auretix_company_id());
 
 drop policy if exists "decision users can manage daily decision queue" on daily_decision_queue;
 create policy "decision users can manage daily decision queue"
-  on daily_decision_queue
-  for all
+  on daily_decision_queue for all
   using (
     company_id = current_auretix_company_id()
     and current_auretix_role() in ('owner', 'admin', 'operator', 'finance')
@@ -649,14 +293,12 @@ create policy "decision users can manage daily decision queue"
 
 drop policy if exists "company members can read profit impact records" on profit_impact_records;
 create policy "company members can read profit impact records"
-  on profit_impact_records
-  for select
+  on profit_impact_records for select
   using (company_id = current_auretix_company_id());
 
 drop policy if exists "decision users can create profit impact records" on profit_impact_records;
 create policy "decision users can create profit impact records"
-  on profit_impact_records
-  for insert
+  on profit_impact_records for insert
   with check (
     company_id = current_auretix_company_id()
     and current_auretix_role() in ('owner', 'admin', 'operator', 'finance')

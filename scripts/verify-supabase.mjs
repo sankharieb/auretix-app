@@ -78,17 +78,39 @@ const checks = [
   { table: "roi_snapshots", select: "id,workspace_id,proof_status,proof_score" },
   { table: "partner_directory", select: "id,company_id,partner_type,name,status" },
   { table: "partner_match_requests", select: "id,workspace_id,partner_type,status" },
+  { table: "risk_scores", select: "id,workspace_id,sku,score,risk_level" },
+  { table: "decision_recommendations", select: "id,workspace_id,sku,user_action,accuracy_status" },
+  { table: "decision_outcomes", select: "id,recommendation_id,sku,accuracy_status" },
+  { table: "supplier_intelligence", select: "id,workspace_id,supplier_name,reliability_score" },
+  { table: "supplier_performance_events", select: "id,workspace_id,supplier_name,event_type" },
+  { table: "partner_match_outcomes", select: "id,workspace_id,partner_type,solved_issue" },
+  { table: "daily_decision_queue", select: "id,workspace_id,sku,priority_score,status" },
+  { table: "profit_impact_records", select: "id,recommendation_id,sku,expected_benefit" },
 ];
 
 const results = [];
+let connectionFailed = false;
 
 for (const check of checks) {
+  if (connectionFailed) {
+    results.push({
+      table: check.table,
+      ok: false,
+      error: "Skipped because the Supabase request failed before this table could be checked.",
+    });
+    continue;
+  }
+
   const { data, error } = await supabase
     .from(check.table)
     .select(check.select)
     .limit(1);
 
   if (error) {
+    if (error.message?.includes("fetch failed")) {
+      connectionFailed = true;
+    }
+
     results.push({
       table: check.table,
       ok: false,
@@ -109,7 +131,13 @@ const failed = results.filter((result) => !result.ok);
 console.log(JSON.stringify({ ok: failed.length === 0, results }, null, 2));
 
 if (failed.length > 0) {
-  console.error("Supabase connected, but at least one Auretix table is missing or blocked.");
-  console.error("Run db/schema.sql in the Supabase SQL editor, then rerun this check.");
+  if (connectionFailed) {
+    console.error("Supabase could not be reached from this environment.");
+    console.error("Check the Supabase URL, network/VPN access, and service role key, then rerun this check.");
+  } else {
+    console.error("Supabase connected, but at least one Auretix table is missing or blocked.");
+    console.error("Run db/schema.sql in the Supabase SQL editor, then rerun this check.");
+  }
+
   process.exit(1);
 }
