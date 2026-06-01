@@ -30,7 +30,9 @@ export async function POST(request) {
       );
     }
 
-    const redirectTo = `${new URL(request.url).origin}/auth/callback?next=/app`;
+    const origin = new URL(request.url).origin;
+    const redirectTo = `${origin}/auth/callback?next=/app`;
+
     const { data, error } = await supabase.auth.admin.generateLink({
       type: "magiclink",
       email,
@@ -44,10 +46,11 @@ export async function POST(request) {
     }
 
     const tokenHash = data?.properties?.hashed_token;
+
     const actionLink = tokenHash
-      ? `${new URL(request.url).origin}/app?token_hash=${encodeURIComponent(
+      ? `${origin}/auth/callback?token_hash=${encodeURIComponent(
           tokenHash,
-        )}&type=magiclink`
+        )}&type=magiclink&next=/app`
       : data?.properties?.action_link;
 
     if (!actionLink) {

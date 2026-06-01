@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createSupabaseServerClient } from "../../../lib/supabase/server.js";
 
 export async function GET(request) {
   const requestUrl = new URL(request.url);
@@ -6,16 +7,21 @@ export async function GET(request) {
   const tokenHash = requestUrl.searchParams.get("token_hash");
   const type = requestUrl.searchParams.get("type");
   const next = requestUrl.searchParams.get("next") || "/app";
-  const redirectUrl = new URL(next, requestUrl.origin);
 
-  if (code) {
-    redirectUrl.searchParams.set("code", code);
+  const supabase = await createSupabaseServerClient();
+
+  if (supabase) {
+    if (code) {
+      await supabase.auth.exchangeCodeForSession(code);
+    }
+
+    if (tokenHash && type) {
+      await supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type,
+      });
+    }
   }
 
-  if (tokenHash && type) {
-    redirectUrl.searchParams.set("token_hash", tokenHash);
-    redirectUrl.searchParams.set("type", type);
-  }
-
-  return NextResponse.redirect(redirectUrl);
+  return NextResponse.redirect(new URL(next, requestUrl.origin));
 }
