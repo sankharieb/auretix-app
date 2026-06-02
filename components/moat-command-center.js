@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { buildMoatEngineSnapshot } from "../lib/moat-engine";
+import { buildMoatEngineSnapshot, buildOutcomeLearningSummary } from "../lib/moat-engine";
 import { money, priorityClass } from "../lib/sku-risk-model";
 
 function sourceLabel(source, migrationRequired) {
@@ -49,6 +49,34 @@ function formatTime(value) {
   }
 }
 
+function accuracyLabel(status) {
+  if (status === "accurate") {
+    return "Accurate";
+  }
+
+  if (status === "partially accurate") {
+    return "Partially accurate";
+  }
+
+  if (status === "inaccurate") {
+    return "Inaccurate";
+  }
+
+  return "Pending";
+}
+
+function defaultOutcomeFormFor(decision) {
+  return {
+    actualResult: decision
+      ? `${decision.sku} outcome: record what actually happened after this recommendation was approved.`
+      : "",
+    actualFinancialImpact: decision?.estimatedFinancialImpact
+      ? String(Math.round(decision.estimatedFinancialImpact))
+      : "",
+    accuracyStatus: "accurate",
+  };
+}
+
 function localDecisionFrom(recommendation, userAction, workspaceId) {
   return {
     id: `local_${recommendation.id}_${Date.now()}`,
@@ -80,12 +108,41 @@ export default function MoatCommandCenter() {
   const [migrationRequired, setMigrationRequired] = useState(false);
   const [message, setMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedOutcomeDecisionId, setSelectedOutcomeDecisionId] = useState(null);
+  const [outcomeForm, setOutcomeForm] = useState(defaultOutcomeFormFor(null));
 
   const selectedRecommendation =
     snapshot.recommendations.find((item) => item.id === selectedRecommendationId) ||
     snapshot.recommendations[0];
   const executiveSummary = snapshot.executiveSummary;
   const criticalQueue = snapshot.dailyDecisionQueue.slice(0, 5);
+  const approvedDecisions = useMemo(
+    () => decisionHistory.filter((decision) => decision.userAction === "approved"),
+    [decisionHistory],
+  );
+  const selectedOutcomeDecision =
+    approvedDecisions.find((decision) => decision.id === selectedOutcomeDecisionId) ||
+    approvedDecisions[0] ||
+    null;
+  const latestOutcomeByRecommendation = useMemo(() => {
+    const latest = new Map();
+
+    for (const outcome of [...decisionOutcomes].sort(
+      (left, right) =>
+        new Date(right.recordedAt || right.createdAt || 0).getTime() -
+        new Date(left.recordedAt || left.createdAt || 0).getTime(),
+    )) {
+      if (!latest.has(outcome.recommendationId)) {
+        latest.set(outcome.recommendationId, outcome);
+      }
+    }
+
+    return latest;
+  }, [decisionOutcomes]);
+  const outcomeSummary = useMemo(
+    () => buildOutcomeLearningSummary(decisionHistory, decisionOutcomes),
+    [decisionHistory, decisionOutcomes],
+  );
 
   useEffect(() => {
     let isActive = true;
@@ -127,6 +184,35 @@ export default function MoatCommandCenter() {
       isActive = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!approvedDecisions.length) {
+      setSelectedOutcomeDecisionId(null);
+      setOutcomeForm(defaultOutcomeFormFor(null));
+      return;
+    }
+
+    const selectedStillExists = approvedDecisions.some(
+      (decision) => decision.id === selectedOutcomeDecisionId,
+    );
+
+    if (!selectedOutcomeDecisionId || !selectedStillExists) {
+      setSelectedOutcomeDecisionId(approvedDecisions[0].id);
+      setOutcomeForm(defaultOutcomeFormFor(approvedDecisions[0]));
+    }
+  }, [approvedDecisions, selectedOutcomeDecisionId]);
+
+  function selectOutcomeDecision(decision) {
+    setSelectedOutcomeDecisionId(decision.id);
+    setOutcomeForm(defaultOutcomeFormFor(decision));
+  }
+
+  function updateOutcomeForm(field, value) {
+    setOutcomeForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
 
   async function recordDecision(recommendation, userAction) {
     if (!recommendation) {
@@ -184,16 +270,36 @@ export default function MoatCommandCenter() {
     }
   }
 
-  async function recordOutcome(decision, accuracyStatus) {
+  async function recordOutcome(event) {
+    event.preventDefault();
+
+    if (!selectedOutcomeDecision) {
+      setMessage("Approve a recommendation before recording an outcome.");
+      return;
+    }
+
+    const actualResult = outcomeForm.actualResult.trim();
+    const actualFinancialImpact = Number(outcomeForm.actualFinancialImpact);
+
+    if (!actualResult) {
+      setMessage("Add a short actual result summary before saving the outcome.");
+      return;
+    }
+
+    if (!Number.isFinite(actualFinancialImpact)) {
+      setMessage("Add a valid actual financial impact amount before saving the outcome.");
+      return;
+    }
+
     setIsSaving(true);
 
     const payload = {
       workspaceId,
-      recommendationId: decision.id,
-      sku: decision.sku,
-      accuracyStatus,
-      actualResult: `${accuracyStatus} outcome recorded after operator review.`,
-      actualFinancialImpact: decision.estimatedFinancialImpact || 0,
+      recommendationId: selectedOutcomeDecision.id,
+      sku: selectedOutcomeDecision.sku,
+      accuracyStatus: outcomeForm.accuracyStatus,
+      actualResult,
+      actualFinancialImpact,
     };
 
     try {
@@ -213,38 +319,44 @@ export default function MoatCommandCenter() {
       setDecisionOutcomes((current) => [data.outcome, ...current]);
       setDecisionHistory((current) =>
         current.map((entry) =>
-          entry.id === decision.id
+          entry.id === selectedOutcomeDecision.id
             ? {
                 ...entry,
-                accuracyStatus,
+                accuracyStatus: outcomeForm.accuracyStatus,
               }
             : entry,
         ),
       );
-      setMessage(`${accuracyStatus} outcome recorded for ${decision.sku}.`);
+      setMessage(
+        `${accuracyLabel(outcomeForm.accuracyStatus)} outcome recorded for ${selectedOutcomeDecision.sku}. Actual impact: ${money(actualFinancialImpact)}.`,
+      );
     } catch {
       setDecisionOutcomes((current) => [
         {
           id: `local_outcome_${Date.now()}`,
-          recommendationId: decision.id,
-          sku: decision.sku,
-          accuracyStatus,
-          actualResult: `${accuracyStatus} outcome recorded in preview mode.`,
+          recommendationId: selectedOutcomeDecision.id,
+          sku: selectedOutcomeDecision.sku,
+          accuracyStatus: outcomeForm.accuracyStatus,
+          actualResult,
+          actualFinancialImpact,
+          recordedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
         },
         ...current,
       ]);
       setDecisionHistory((current) =>
         current.map((entry) =>
-          entry.id === decision.id
+          entry.id === selectedOutcomeDecision.id
             ? {
                 ...entry,
-                accuracyStatus,
+                accuracyStatus: outcomeForm.accuracyStatus,
               }
             : entry,
         ),
       );
-      setMessage(`${accuracyStatus} outcome recorded locally for ${decision.sku}.`);
+      setMessage(
+        `${accuracyLabel(outcomeForm.accuracyStatus)} outcome recorded locally for ${selectedOutcomeDecision.sku}.`,
+      );
     } finally {
       setIsSaving(false);
     }
@@ -304,8 +416,14 @@ export default function MoatCommandCenter() {
         </div>
         <div className="result-block">
           <div className="result-label">Losses prevented</div>
-          <div className="result-value">{money(executiveSummary.estimatedLossesPrevented)}</div>
-          <div className="result-meta">{executiveSummary.recommendationsApproved} approved recommendations.</div>
+          <div className="result-value">
+            {money(outcomeSummary.lossesPrevented || executiveSummary.estimatedLossesPrevented)}
+          </div>
+          <div className="result-meta">
+            {outcomeSummary.totalOutcomes
+              ? `${outcomeSummary.totalOutcomes} outcome-backed result(s).`
+              : `${executiveSummary.recommendationsApproved} approved recommendations.`}
+          </div>
         </div>
       </section>
 
@@ -458,6 +576,143 @@ export default function MoatCommandCenter() {
         </div>
       </section>
 
+      <section className="moat-learning-grid">
+        <div className="lab-card">
+          <div className="results-header">
+            <h3>Outcome learning scorecard</h3>
+            <span className="tier-chip">{outcomeSummary.totalOutcomes} outcomes</span>
+          </div>
+          <div className="moat-learning-metrics">
+            <div>
+              <span>Accurate</span>
+              <strong>{outcomeSummary.accuratePercent}%</strong>
+              <small>{outcomeSummary.accurateCount} latest outcome(s)</small>
+            </div>
+            <div>
+              <span>Partially accurate</span>
+              <strong>{outcomeSummary.partiallyAccuratePercent}%</strong>
+              <small>{outcomeSummary.partiallyAccurateCount} latest outcome(s)</small>
+            </div>
+            <div>
+              <span>Inaccurate</span>
+              <strong>{outcomeSummary.inaccuratePercent}%</strong>
+              <small>{outcomeSummary.inaccurateCount} latest outcome(s)</small>
+            </div>
+            <div>
+              <span>Estimated vs actual</span>
+              <strong>{money(outcomeSummary.estimatedFinancialImpact)}</strong>
+              <small>
+                Actual {money(outcomeSummary.actualFinancialImpact)} | variance{" "}
+                {money(outcomeSummary.impactVariance)}
+              </small>
+            </div>
+            <div>
+              <span>Losses prevented</span>
+              <strong>{money(outcomeSummary.lossesPrevented)}</strong>
+              <small>Accurate and partially accurate outcomes.</small>
+            </div>
+            <div>
+              <span>Awaiting result</span>
+              <strong>{outcomeSummary.pendingOutcomeCount}</strong>
+              <small>Approved decisions still need actual results.</small>
+            </div>
+          </div>
+        </div>
+
+        <form className="lab-card moat-outcome-form" onSubmit={recordOutcome}>
+          <div className="results-header">
+            <h3>Record actual outcome</h3>
+            <span className="tier-chip">Learning loop</span>
+          </div>
+          {approvedDecisions.length ? (
+            <>
+              <label className="moat-field">
+                Approved recommendation
+                <select
+                  value={selectedOutcomeDecision?.id || ""}
+                  onChange={(event) => {
+                    const nextDecision = approvedDecisions.find(
+                      (decision) => decision.id === event.target.value,
+                    );
+
+                    if (nextDecision) {
+                      selectOutcomeDecision(nextDecision);
+                    }
+                  }}
+                >
+                  {approvedDecisions.map((decision) => (
+                    <option key={decision.id} value={decision.id}>
+                      {decision.sku} - {decision.recommendedAction}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="moat-outcome-reference">
+                <div>
+                  <span>Recommendation ID</span>
+                  <strong>{selectedOutcomeDecision?.id}</strong>
+                </div>
+                <div>
+                  <span>SKU</span>
+                  <strong>{selectedOutcomeDecision?.sku}</strong>
+                </div>
+                <div>
+                  <span>Estimated impact</span>
+                  <strong>{money(selectedOutcomeDecision?.estimatedFinancialImpact || 0)}</strong>
+                </div>
+                <div>
+                  <span>Recorded timestamp</span>
+                  <strong>Captured on submit</strong>
+                </div>
+              </div>
+
+              <label className="moat-field">
+                Actual result summary
+                <textarea
+                  rows={4}
+                  value={outcomeForm.actualResult}
+                  onChange={(event) => updateOutcomeForm("actualResult", event.target.value)}
+                />
+              </label>
+
+              <div className="moat-field-grid">
+                <label className="moat-field">
+                  Actual financial impact
+                  <input
+                    type="number"
+                    value={outcomeForm.actualFinancialImpact}
+                    onChange={(event) =>
+                      updateOutcomeForm("actualFinancialImpact", event.target.value)
+                    }
+                  />
+                </label>
+                <label className="moat-field">
+                  Accuracy status
+                  <select
+                    value={outcomeForm.accuracyStatus}
+                    onChange={(event) => updateOutcomeForm("accuracyStatus", event.target.value)}
+                  >
+                    <option value="accurate">Accurate</option>
+                    <option value="partially accurate">Partially accurate</option>
+                    <option value="inaccurate">Inaccurate</option>
+                  </select>
+                </label>
+              </div>
+
+              <button className="button button-primary" disabled={isSaving} type="submit">
+                Save outcome
+              </button>
+            </>
+          ) : (
+            <p className="result-meta">
+              Approve a recommendation first. Auretix records outcomes only after a human decision
+              exists, so the learning loop stays auditable.
+            </p>
+          )}
+        </form>
+      </section>
+
       <section className="seller-risk-grid">
         <div className="lab-card">
           <div className="results-header">
@@ -510,41 +765,35 @@ export default function MoatCommandCenter() {
         </div>
         {decisionHistory.length ? (
           <div className="moat-history-list">
-            {decisionHistory.slice(0, 8).map((decision) => (
-              <div className="moat-history-item" key={decision.id}>
-                <span>
-                  <strong>{decision.sku}</strong>
-                  <small>{formatTime(decision.createdAt)}</small>
-                </span>
-                <span>{decision.recommendedAction}</span>
-                <span>{decision.status || actionLabel(decision.userAction)}</span>
-                <span>{money(decision.estimatedFinancialImpact || 0)}</span>
-                <span>{decision.accuracyStatus || "pending"}</span>
-                <span className="partner-status-actions moat-outcome-actions">
-                  <button
-                    disabled={isSaving}
-                    onClick={() => recordOutcome(decision, "accurate")}
-                    type="button"
-                  >
-                    Accurate
-                  </button>
-                  <button
-                    disabled={isSaving}
-                    onClick={() => recordOutcome(decision, "partially accurate")}
-                    type="button"
-                  >
-                    Partial
-                  </button>
-                  <button
-                    disabled={isSaving}
-                    onClick={() => recordOutcome(decision, "inaccurate")}
-                    type="button"
-                  >
-                    Inaccurate
-                  </button>
-                </span>
-              </div>
-            ))}
+            {decisionHistory.slice(0, 8).map((decision) => {
+              const latestOutcome = latestOutcomeByRecommendation.get(decision.id);
+
+              return (
+                <div className="moat-history-item" key={decision.id}>
+                  <span>
+                    <strong>{decision.sku}</strong>
+                    <small>{formatTime(decision.createdAt)}</small>
+                  </span>
+                  <span>{decision.recommendedAction}</span>
+                  <span>{decision.status || actionLabel(decision.userAction)}</span>
+                  <span>{money(decision.estimatedFinancialImpact || 0)}</span>
+                  <span>{accuracyLabel(latestOutcome?.accuracyStatus || decision.accuracyStatus)}</span>
+                  <span className="partner-status-actions moat-outcome-actions">
+                    {decision.userAction === "approved" ? (
+                      <button
+                        disabled={isSaving}
+                        onClick={() => selectOutcomeDecision(decision)}
+                        type="button"
+                      >
+                        Record outcome
+                      </button>
+                    ) : (
+                      <small>Approve first</small>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <p className="result-meta">
@@ -557,6 +806,35 @@ export default function MoatCommandCenter() {
             {decisionOutcomes.length} outcome record(s) attached to this workspace.
           </p>
         ) : null}
+      </section>
+
+      <section className="lab-card moat-history-card">
+        <div className="results-header">
+          <h3>Outcome history</h3>
+          <span className="tier-chip">{decisionOutcomes.length} recorded</span>
+        </div>
+        {outcomeSummary.recentOutcomes.length ? (
+          <div className="moat-outcome-list">
+            {outcomeSummary.recentOutcomes.slice(0, 8).map((outcome) => (
+              <div className="moat-outcome-item" key={outcome.id}>
+                <span>
+                  <strong>{outcome.sku}</strong>
+                  <small>{formatTime(outcome.recordedAt || outcome.createdAt)}</small>
+                </span>
+                <span>{accuracyLabel(outcome.accuracyStatus)}</span>
+                <span>{money(outcome.estimatedFinancialImpact || 0)} estimated</span>
+                <span>{money(outcome.actualFinancialImpact || 0)} actual</span>
+                <span>{money(outcome.impactVariance || 0)} variance</span>
+                <p>{outcome.actualResult}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="result-meta">
+            No outcomes have been recorded yet. Save an actual result from the Learning loop card
+            to prove whether Auretix was right.
+          </p>
+        )}
       </section>
     </div>
   );

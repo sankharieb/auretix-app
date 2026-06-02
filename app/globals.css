@@ -1917,9 +1917,13 @@ textarea {
 .moat-status-card,
 .moat-command-grid,
 .moat-profit-grid,
+.moat-learning-grid,
 .moat-risk-index,
 .moat-selected-body,
-.moat-impact-strip {
+.moat-impact-strip,
+.moat-learning-metrics,
+.moat-outcome-reference,
+.moat-field-grid {
   display: grid;
   gap: 18px;
 }
@@ -2056,16 +2060,78 @@ textarea {
 
 .moat-impact-strip span,
 .moat-supplier-list span,
-.moat-partner-grid span {
+.moat-partner-grid span,
+.moat-learning-metrics span,
+.moat-outcome-reference span {
   display: block;
   color: var(--muted);
   font-weight: 900;
 }
 
-.moat-impact-strip strong {
+.moat-impact-strip strong,
+.moat-learning-metrics strong {
   display: block;
   margin-top: 8px;
   font-size: 1.35rem;
+}
+
+.moat-learning-grid {
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+  margin-bottom: 24px;
+}
+
+.moat-learning-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.moat-learning-metrics div,
+.moat-outcome-reference div,
+.moat-outcome-item {
+  padding: 16px;
+  border: 1px solid rgba(129, 171, 197, 0.15);
+  border-radius: 18px;
+  background: rgba(3, 14, 20, 0.64);
+}
+
+.moat-learning-metrics small,
+.moat-outcome-reference strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.moat-outcome-form {
+  align-content: start;
+}
+
+.moat-field {
+  display: grid;
+  gap: 10px;
+  color: var(--text);
+  font-weight: 900;
+}
+
+.moat-field select,
+.moat-field input,
+.moat-field textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(129, 171, 197, 0.2);
+  border-radius: 16px;
+  background: rgba(3, 14, 20, 0.84);
+  color: var(--text);
+  font: inherit;
+}
+
+.moat-field textarea {
+  min-height: 126px;
+  resize: vertical;
+}
+
+.moat-outcome-reference,
+.moat-field-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .moat-supplier-list strong,
@@ -2129,6 +2195,40 @@ textarea {
 
 .moat-outcome-note {
   margin-top: 16px;
+}
+
+.moat-outcome-list {
+  display: grid;
+  gap: 12px;
+}
+
+.moat-outcome-item {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.8fr) 0.7fr 0.8fr 0.8fr 0.8fr minmax(240px, 1.35fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.moat-outcome-item span,
+.moat-outcome-item p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.moat-outcome-item strong,
+.moat-outcome-item small {
+  display: block;
+}
+
+.moat-outcome-item strong {
+  color: var(--text);
+}
+
+.moat-outcome-actions small {
+  color: var(--muted);
+  font-weight: 900;
 }
 
 .data-readiness-shell .app-header h1 {
@@ -2818,11 +2918,16 @@ textarea {
   .moat-status-card,
   .moat-command-grid,
   .moat-profit-grid,
+  .moat-learning-grid,
+  .moat-learning-metrics,
   .moat-risk-index,
   .moat-selected-body,
   .moat-impact-strip,
+  .moat-outcome-reference,
+  .moat-field-grid,
   .moat-partner-grid,
   .moat-history-item,
+  .moat-outcome-item,
   .result {
     grid-template-columns: 1fr;
   }
