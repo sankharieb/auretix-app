@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { buildMoatEngineSnapshot, buildOutcomeLearningSummary } from "../lib/moat-engine";
+import { buildLearningAnalytics } from "../lib/moat-learning-analytics";
 import { money, priorityClass } from "../lib/sku-risk-model";
 
 function sourceLabel(source, migrationRequired) {
@@ -65,6 +66,14 @@ function accuracyLabel(status) {
   return "Pending";
 }
 
+function percentLabel(value) {
+  return `${Math.round(Number(value) || 0)}%`;
+}
+
+function plainLabel(value) {
+  return value || "Unknown";
+}
+
 function defaultOutcomeFormFor(decision) {
   return {
     actualResult: decision
@@ -103,6 +112,12 @@ export default function MoatCommandCenter() {
   );
   const [decisionHistory, setDecisionHistory] = useState(localSnapshot.decisionHistory || []);
   const [decisionOutcomes, setDecisionOutcomes] = useState([]);
+  const [serverLearningAnalytics, setServerLearningAnalytics] = useState(
+    buildLearningAnalytics({
+      decisionRecommendations: localSnapshot.decisionHistory || [],
+      decisionOutcomes: localSnapshot.decisionOutcomes || [],
+    }),
+  );
   const [workspaceId, setWorkspaceId] = useState("workspace_demo");
   const [source, setSource] = useState("preview");
   const [migrationRequired, setMigrationRequired] = useState(false);
@@ -143,6 +158,18 @@ export default function MoatCommandCenter() {
     () => buildOutcomeLearningSummary(decisionHistory, decisionOutcomes),
     [decisionHistory, decisionOutcomes],
   );
+  const learningAnalytics = useMemo(() => {
+    const liveAnalytics = buildLearningAnalytics({
+      decisionRecommendations: decisionHistory,
+      decisionOutcomes,
+    });
+
+    return {
+      ...serverLearningAnalytics,
+      ...liveAnalytics,
+      auditEventCount: serverLearningAnalytics.auditEventCount || liveAnalytics.auditEventCount,
+    };
+  }, [decisionHistory, decisionOutcomes, serverLearningAnalytics]);
 
   useEffect(() => {
     let isActive = true;
@@ -165,6 +192,13 @@ export default function MoatCommandCenter() {
         setWorkspaceId(data.workspaceId || "workspace_demo");
         setDecisionHistory(data.decisionHistory || []);
         setDecisionOutcomes(data.decisionOutcomes || []);
+        setServerLearningAnalytics(
+          data.learningAnalytics ||
+            buildLearningAnalytics({
+              decisionRecommendations: data.decisionHistory || [],
+              decisionOutcomes: data.decisionOutcomes || [],
+            }),
+        );
         setSource(data.source || "supabase");
         setMigrationRequired(Boolean(data.migrationRequired));
         setSelectedRecommendationId(data.recommendations?.[0]?.id || null);
@@ -711,6 +745,217 @@ export default function MoatCommandCenter() {
             </p>
           )}
         </form>
+      </section>
+
+      <section className="lab-card moat-learning-intelligence">
+        <div className="results-header">
+          <div>
+            <span className="result-label">Learning Intelligence</span>
+            <h3>Proof that Auretix is learning from real decisions.</h3>
+          </div>
+          <span className="tier-chip">{learningAnalytics.totalRecommendations} recommendations</span>
+        </div>
+        <p className="result-meta">
+          Auretix has recorded {learningAnalytics.outcomesRecorded} outcome
+          {learningAnalytics.outcomesRecorded === 1 ? "" : "s"} with{" "}
+          {percentLabel(learningAnalytics.accuracyRate)} accuracy. Approved recommendations have
+          {learningAnalytics.outcomesRecorded
+            ? ` created ${money(learningAnalytics.lossesPrevented)} in verified prevented loss.`
+            : " not been outcome-verified yet."}
+        </p>
+
+        <div className="moat-intelligence-summary">
+          <div>
+            <span>Recommendation Accuracy</span>
+            <strong>{percentLabel(learningAnalytics.accuracyRate)}</strong>
+            <small>
+              {learningAnalytics.accurateOutcomes} accurate,{" "}
+              {learningAnalytics.partiallyAccurateOutcomes} partial,{" "}
+              {learningAnalytics.inaccurateOutcomes} inaccurate.
+            </small>
+          </div>
+          <div>
+            <span>Outcomes Recorded</span>
+            <strong>{learningAnalytics.outcomesRecorded}</strong>
+            <small>
+              {learningAnalytics.pendingOutcomeCount} approved recommendation
+              {learningAnalytics.pendingOutcomeCount === 1 ? "" : "s"} still need results.
+            </small>
+          </div>
+          <div>
+            <span>Actual Impact</span>
+            <strong>{money(learningAnalytics.actualFinancialImpact)}</strong>
+            <small>
+              Avg accurate outcome:{" "}
+              {money(learningAnalytics.averageActualImpactPerAccurateOutcome)}.
+            </small>
+          </div>
+          <div>
+            <span>Losses Prevented</span>
+            <strong>{money(learningAnalytics.lossesPrevented)}</strong>
+            <small>
+              Avg approved confidence: {percentLabel(learningAnalytics.averageApprovedConfidence)}.
+            </small>
+          </div>
+        </div>
+
+        <div className="moat-intelligence-grid">
+          <div className="moat-intelligence-card">
+            <div className="results-header">
+              <h4>Estimated vs Actual Impact</h4>
+              <span className="tier-chip">Variance</span>
+            </div>
+            <div className="moat-impact-strip moat-impact-strip-compact">
+              <div>
+                <span>Estimated</span>
+                <strong>{money(learningAnalytics.estimatedFinancialImpact)}</strong>
+              </div>
+              <div>
+                <span>Actual</span>
+                <strong>{money(learningAnalytics.actualFinancialImpact)}</strong>
+              </div>
+              <div>
+                <span>Variance</span>
+                <strong>{money(learningAnalytics.impactVariance)}</strong>
+              </div>
+            </div>
+            <p className="result-meta">
+              This compares outcome-backed estimated impact against the actual result entered by
+              the operator.
+            </p>
+          </div>
+
+          <div className="moat-intelligence-card">
+            <div className="results-header">
+              <h4>Accuracy by Recommendation Type</h4>
+              <span className="tier-chip">Model behavior</span>
+            </div>
+            {learningAnalytics.recommendationTypePerformance.length ? (
+              <div className="moat-performance-list">
+                {learningAnalytics.recommendationTypePerformance.slice(0, 5).map((item) => (
+                  <div className="moat-performance-row" key={item.key}>
+                    <span>
+                      <strong>{plainLabel(item.label)}</strong>
+                      <small>{item.outcomesRecorded} outcome-backed result(s)</small>
+                    </span>
+                    <span>{percentLabel(item.accuracyRate)} accurate</span>
+                    <span>{money(item.actualFinancialImpact)} actual</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="result-meta">Record outcomes to compare recommendation types.</p>
+            )}
+          </div>
+
+          <div className="moat-intelligence-card">
+            <div className="results-header">
+              <h4>Top Value-Created Decisions</h4>
+              <span className="tier-chip">Top 5</span>
+            </div>
+            {learningAnalytics.topValueCreatedDecisions.length ? (
+              <div className="moat-value-list">
+                {learningAnalytics.topValueCreatedDecisions.map((decision) => (
+                  <div className="moat-value-row" key={decision.id}>
+                    <span>
+                      <strong>{decision.sku}</strong>
+                      <small>{decision.recommendedAction}</small>
+                    </span>
+                    <span>{accuracyLabel(decision.accuracyStatus)}</span>
+                    <span>{money(decision.actualFinancialImpact)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="result-meta">
+                Save an actual outcome to show which decisions created measurable value.
+              </p>
+            )}
+          </div>
+
+          <div className="moat-intelligence-card">
+            <div className="results-header">
+              <h4>Weakest Recommendation Types</h4>
+              <span className="tier-chip">Improve next</span>
+            </div>
+            {learningAnalytics.weakestRecommendationTypes.length ? (
+              <div className="moat-performance-list">
+                {learningAnalytics.weakestRecommendationTypes.map((item) => (
+                  <div className="moat-performance-row" key={item.key}>
+                    <span>
+                      <strong>{plainLabel(item.label)}</strong>
+                      <small>
+                        {item.inaccurateOutcomes} inaccurate of {item.outcomesRecorded} outcome(s).
+                      </small>
+                    </span>
+                    <span>{percentLabel(item.accuracyRate)} accurate</span>
+                    <span>{money(item.impactVariance)} variance</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="result-meta">
+                Weak spots appear after outcomes are marked partially accurate or inaccurate.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="moat-intelligence-grid moat-intelligence-grid-secondary">
+          <div className="moat-intelligence-card">
+            <div className="results-header">
+              <h4>Accuracy by SKU</h4>
+              <span className="tier-chip">SKU learning</span>
+            </div>
+            {learningAnalytics.skuPerformance.length ? (
+              <div className="moat-performance-list">
+                {learningAnalytics.skuPerformance.slice(0, 5).map((item) => (
+                  <div className="moat-performance-row" key={item.key}>
+                    <span>
+                      <strong>{plainLabel(item.label)}</strong>
+                      <small>{item.totalRecommendations} recommendation(s)</small>
+                    </span>
+                    <span>{percentLabel(item.accuracyRate)} accurate</span>
+                    <span>{money(item.actualFinancialImpact)} actual</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="result-meta">SKU-level learning appears after recommendations are saved.</p>
+            )}
+          </div>
+
+          <div className="moat-intelligence-card">
+            <div className="results-header">
+              <h4>Accuracy by Issue Type</h4>
+              <span className="tier-chip">Risk pattern</span>
+            </div>
+            {learningAnalytics.issueTypePerformance.length ? (
+              <div className="moat-performance-list">
+                {learningAnalytics.issueTypePerformance.slice(0, 5).map((item) => (
+                  <div className="moat-performance-row" key={item.key}>
+                    <span>
+                      <strong>{plainLabel(item.label)}</strong>
+                      <small>{item.outcomesRecorded} outcome-backed result(s)</small>
+                    </span>
+                    <span>{percentLabel(item.accuracyRate)} accurate</span>
+                    <span>{money(item.actualFinancialImpact)} actual</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="result-meta">Issue-type learning appears after outcomes are recorded.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="moat-learning-counts">
+          <span>Approved: {learningAnalytics.approvedRecommendations}</span>
+          <span>Deferred: {learningAnalytics.deferredRecommendations}</span>
+          <span>Watched: {learningAnalytics.watchedRecommendations}</span>
+          <span>Partner help: {learningAnalytics.partnerHelpRequests}</span>
+          <span>Audit events loaded: {learningAnalytics.auditEventCount}</span>
+        </div>
       </section>
 
       <section className="seller-risk-grid">
