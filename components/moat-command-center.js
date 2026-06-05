@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { buildMoatEngineSnapshot, buildOutcomeLearningSummary } from "../lib/moat-engine";
 import { buildLearningAnalytics } from "../lib/moat-learning-analytics";
+import { buildRecommendationPerformance } from "../lib/moat-recommendation-performance";
 import { money, priorityClass } from "../lib/sku-risk-model";
 
 function sourceLabel(source, migrationRequired) {
@@ -74,6 +75,16 @@ function plainLabel(value) {
   return value || "Unknown";
 }
 
+function accuracySentence(item) {
+  if (!item?.outcomesRecorded) {
+    return "No outcome-backed results yet.";
+  }
+
+  return `${item.label} has ${item.accuracyRate}% accuracy across ${item.outcomesRecorded} recorded outcome${
+    item.outcomesRecorded === 1 ? "" : "s"
+  }.`;
+}
+
 function defaultOutcomeFormFor(decision) {
   return {
     actualResult: decision
@@ -114,6 +125,12 @@ export default function MoatCommandCenter() {
   const [decisionOutcomes, setDecisionOutcomes] = useState([]);
   const [serverLearningAnalytics, setServerLearningAnalytics] = useState(
     buildLearningAnalytics({
+      decisionRecommendations: localSnapshot.decisionHistory || [],
+      decisionOutcomes: localSnapshot.decisionOutcomes || [],
+    }),
+  );
+  const [serverRecommendationPerformance, setServerRecommendationPerformance] = useState(
+    buildRecommendationPerformance({
       decisionRecommendations: localSnapshot.decisionHistory || [],
       decisionOutcomes: localSnapshot.decisionOutcomes || [],
     }),
@@ -170,6 +187,36 @@ export default function MoatCommandCenter() {
       auditEventCount: serverLearningAnalytics.auditEventCount || liveAnalytics.auditEventCount,
     };
   }, [decisionHistory, decisionOutcomes, serverLearningAnalytics]);
+  const recommendationPerformance = useMemo(() => {
+    const livePerformance = buildRecommendationPerformance({
+      decisionRecommendations: decisionHistory,
+      decisionOutcomes,
+    });
+
+    return {
+      ...serverRecommendationPerformance,
+      ...livePerformance,
+      auditEventCount: serverRecommendationPerformance.auditEventCount || livePerformance.auditEventCount,
+    };
+  }, [decisionHistory, decisionOutcomes, serverRecommendationPerformance]);
+  const bestRecommendationTypes = recommendationPerformance.recommendationTypeRankings
+    .filter((item) => item.outcomesRecorded > 0)
+    .slice(0, 5);
+  const weakestRecommendationTypes = [...recommendationPerformance.recommendationTypeRankings]
+    .filter((item) => item.outcomesRecorded > 0)
+    .sort((left, right) => {
+      if (left.accuracyRate !== right.accuracyRate) {
+        return left.accuracyRate - right.accuracyRate;
+      }
+
+      return Math.abs(right.variance) - Math.abs(left.variance);
+    })
+    .slice(0, 5);
+  const supplierOutcomeRankings = recommendationPerformance.supplierRankings.slice(0, 5);
+  const issueTypeRankings = recommendationPerformance.issueTypeRankings.slice(0, 5);
+  const skuOutcomeRankings = recommendationPerformance.skuRankings.slice(0, 5);
+  const confidenceAdjustmentSummary =
+    recommendationPerformance.confidenceAdjustmentSummary.slice(0, 6);
 
   useEffect(() => {
     let isActive = true;
@@ -195,6 +242,13 @@ export default function MoatCommandCenter() {
         setServerLearningAnalytics(
           data.learningAnalytics ||
             buildLearningAnalytics({
+              decisionRecommendations: data.decisionHistory || [],
+              decisionOutcomes: data.decisionOutcomes || [],
+            }),
+        );
+        setServerRecommendationPerformance(
+          data.recommendationPerformance ||
+            buildRecommendationPerformance({
               decisionRecommendations: data.decisionHistory || [],
               decisionOutcomes: data.decisionOutcomes || [],
             }),
@@ -955,6 +1009,212 @@ export default function MoatCommandCenter() {
           <span>Watched: {learningAnalytics.watchedRecommendations}</span>
           <span>Partner help: {learningAnalytics.partnerHelpRequests}</span>
           <span>Audit events loaded: {learningAnalytics.auditEventCount}</span>
+        </div>
+      </section>
+
+      <section className="lab-card moat-performance-rankings">
+        <div className="results-header">
+          <div>
+            <span className="result-label">Recommendation Performance Rankings</span>
+            <h3>Which Auretix moves are actually working?</h3>
+          </div>
+          <span className="tier-chip">
+            {recommendationPerformance.recommendationTypeRankings.length} signal groups
+          </span>
+        </div>
+        <p className="result-meta">
+          Auretix now ranks recommendation types, suppliers, SKUs, and issue categories by
+          recorded outcomes, accuracy, financial impact, variance, and confidence-adjustment
+          suggestions.
+        </p>
+
+        <div className="moat-ranking-grid">
+          <div className="moat-intelligence-card">
+            <div className="results-header">
+              <h4>Best Performing Recommendation Types</h4>
+              <span className="tier-chip">Repeatable wins</span>
+            </div>
+            {bestRecommendationTypes.length ? (
+              <div className="moat-performance-list">
+                {bestRecommendationTypes.map((item) => (
+                  <div className="moat-performance-row moat-performance-row-wide" key={item.key}>
+                    <span>
+                      <strong>{plainLabel(item.label)}</strong>
+                      <small>{accuracySentence(item)}</small>
+                    </span>
+                    <span>{money(item.actualFinancialImpact)} actual</span>
+                    <span>{item.confidenceAdjustmentSuggestion}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="result-meta">
+                Record outcomes to rank which recommendation types perform best.
+              </p>
+            )}
+          </div>
+
+          <div className="moat-intelligence-card">
+            <div className="results-header">
+              <h4>Weakest Recommendation Types</h4>
+              <span className="tier-chip">Needs review</span>
+            </div>
+            {weakestRecommendationTypes.length ? (
+              <div className="moat-performance-list">
+                {weakestRecommendationTypes.map((item) => (
+                  <div className="moat-performance-row moat-performance-row-wide" key={item.key}>
+                    <span>
+                      <strong>{plainLabel(item.label)}</strong>
+                      <small>
+                        {item.inaccurateCount} inaccurate, {item.partiallyAccurateCount} partial,
+                        variance {money(item.variance)}.
+                      </small>
+                    </span>
+                    <span>{percentLabel(item.accuracyRate)} accurate</span>
+                    <span>{item.confidenceAdjustmentSuggestion}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="result-meta">
+                Weak recommendation types appear after partially accurate or inaccurate outcomes.
+              </p>
+            )}
+          </div>
+
+          <div className="moat-intelligence-card">
+            <div className="results-header">
+              <h4>Supplier Outcome Rankings</h4>
+              <span className="tier-chip">Supplier signal</span>
+            </div>
+            {supplierOutcomeRankings.length ? (
+              <div className="moat-performance-list">
+                {supplierOutcomeRankings.map((item) => (
+                  <div className="moat-performance-row moat-performance-row-wide" key={item.key}>
+                    <span>
+                      <strong>{plainLabel(item.label)}</strong>
+                      <small>
+                        {item.outcomesRecorded} outcome(s), {item.totalRecommendations} linked
+                        recommendation(s)
+                        {item.riskNotes.length ? `; ${item.riskNotes[0]}` : "."}
+                      </small>
+                    </span>
+                    <span>{percentLabel(item.accuracyRate)} accurate</span>
+                    <span>{money(item.actualFinancialImpact)} actual</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="result-meta">Supplier rankings appear when decisions carry supplier metadata.</p>
+            )}
+          </div>
+
+          <div className="moat-intelligence-card">
+            <div className="results-header">
+              <h4>Issue Type Accuracy</h4>
+              <span className="tier-chip">Risk pattern</span>
+            </div>
+            {issueTypeRankings.length ? (
+              <div className="moat-performance-list">
+                {issueTypeRankings.map((item) => (
+                  <div className="moat-performance-row moat-performance-row-wide" key={item.key}>
+                    <span>
+                      <strong>{plainLabel(item.label)}</strong>
+                      <small>
+                        {item.totalRecommendations} total recommendation(s), {item.outcomesRecorded} outcome(s).
+                      </small>
+                    </span>
+                    <span>{percentLabel(item.accuracyRate)} accurate</span>
+                    <span>{money(item.variance)} variance</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="result-meta">Issue type rankings appear after recommendations are recorded.</p>
+            )}
+          </div>
+
+          <div className="moat-intelligence-card">
+            <div className="results-header">
+              <h4>SKU Outcome Performance</h4>
+              <span className="tier-chip">SKU memory</span>
+            </div>
+            {skuOutcomeRankings.length ? (
+              <div className="moat-performance-list">
+                {skuOutcomeRankings.map((item) => (
+                  <div className="moat-performance-row moat-performance-row-wide" key={item.key}>
+                    <span>
+                      <strong>{plainLabel(item.label)}</strong>
+                      <small>
+                        Latest status: {accuracyLabel(item.latestAccuracyStatus)};{" "}
+                        {item.outcomesRecorded} outcome(s).
+                      </small>
+                    </span>
+                    <span>{money(item.actualFinancialImpact)} actual</span>
+                    <span>{money(item.estimatedFinancialImpact)} estimated</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="result-meta">SKU rankings appear after recorded recommendations.</p>
+            )}
+          </div>
+
+          <div className="moat-intelligence-card">
+            <div className="results-header">
+              <h4>Confidence Adjustment Suggestions</h4>
+              <span className="tier-chip">Display only</span>
+            </div>
+            {confidenceAdjustmentSummary.length ? (
+              <div className="moat-confidence-list">
+                {confidenceAdjustmentSummary.map((item) => (
+                  <div className="moat-confidence-row" key={item.key}>
+                    <span>
+                      <strong>{plainLabel(item.label)}</strong>
+                      <small>
+                        {item.outcomesRecorded} outcome(s), {percentLabel(item.accuracyRate)} accuracy,
+                        current avg confidence {percentLabel(item.averageConfidence)}.
+                      </small>
+                    </span>
+                    <strong>{item.suggestion}</strong>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="result-meta">
+                Confidence suggestions appear after recommendation types have history.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="moat-signal-grid">
+          <div>
+            <span className="result-label">Best Performing Signals</span>
+            {recommendationPerformance.strongestSignals.length ? (
+              recommendationPerformance.strongestSignals.slice(0, 3).map((signal) => (
+                <p key={`${signal.kind}-${signal.key}`}>
+                  <strong>{`${signal.kind}: ${signal.label}`}</strong>{" "}
+                  {signal.reason}
+                </p>
+              ))
+            ) : (
+              <p>Record more outcomes to identify repeatable winning signals.</p>
+            )}
+          </div>
+          <div>
+            <span className="result-label">Weakest Recommendation Signals</span>
+            {recommendationPerformance.weakestSignals.length ? (
+              recommendationPerformance.weakestSignals.slice(0, 3).map((signal) => (
+                <p key={`${signal.kind}-${signal.key}`}>
+                  <strong>{`${signal.kind}: ${signal.label}`}</strong>{" "}
+                  {signal.reason}
+                </p>
+              ))
+            ) : (
+              <p>Low-accuracy or high-variance signals will surface here once outcomes are recorded.</p>
+            )}
+          </div>
         </div>
       </section>
 

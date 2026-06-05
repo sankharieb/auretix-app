@@ -1924,9 +1924,12 @@ textarea {
 .moat-learning-metrics,
 .moat-intelligence-summary,
 .moat-intelligence-grid,
+.moat-ranking-grid,
+.moat-signal-grid,
 .moat-outcome-reference,
 .moat-field-grid,
-.moat-learning-counts {
+.moat-learning-counts,
+.moat-confidence-list {
   display: grid;
   gap: 18px;
 }
@@ -2108,11 +2111,16 @@ textarea {
   margin-bottom: 24px;
 }
 
-.moat-learning-intelligence > .result-meta {
+.moat-learning-intelligence > .result-meta,
+.moat-performance-rankings > .result-meta {
   max-width: 980px;
   margin: 10px 0 20px;
   color: var(--muted);
   line-height: 1.65;
+}
+
+.moat-performance-rankings {
+  margin-bottom: 24px;
 }
 
 .moat-intelligence-summary {
@@ -2123,7 +2131,9 @@ textarea {
 .moat-intelligence-summary div,
 .moat-intelligence-card,
 .moat-performance-row,
-.moat-value-row {
+.moat-value-row,
+.moat-confidence-row,
+.moat-signal-grid > div {
   border: 1px solid rgba(129, 171, 197, 0.15);
   background: rgba(3, 14, 20, 0.64);
 }
@@ -2136,6 +2146,7 @@ textarea {
 .moat-intelligence-summary span,
 .moat-performance-row span,
 .moat-value-row span,
+.moat-confidence-row span,
 .moat-learning-counts span {
   color: var(--muted);
   font-weight: 900;
@@ -2149,7 +2160,8 @@ textarea {
 
 .moat-intelligence-summary small,
 .moat-performance-row small,
-.moat-value-row small {
+.moat-value-row small,
+.moat-confidence-row small {
   display: block;
   margin-top: 6px;
   color: var(--muted);
@@ -2160,6 +2172,10 @@ textarea {
 .moat-intelligence-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 18px;
+}
+
+.moat-ranking-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .moat-intelligence-card {
@@ -2178,7 +2194,8 @@ textarea {
 }
 
 .moat-performance-list,
-.moat-value-list {
+.moat-value-list,
+.moat-confidence-list {
   display: grid;
   gap: 10px;
 }
@@ -2193,8 +2210,13 @@ textarea {
   border-radius: 16px;
 }
 
+.moat-performance-row-wide {
+  grid-template-columns: minmax(0, 1.3fr) minmax(130px, 0.7fr) minmax(170px, 0.8fr);
+}
+
 .moat-performance-row strong,
-.moat-value-row strong {
+.moat-value-row strong,
+.moat-confidence-row strong {
   display: block;
   color: var(--text);
 }
@@ -2205,6 +2227,41 @@ textarea {
 .moat-value-row > span:nth-child(3) {
   color: var(--text);
   text-align: right;
+}
+
+.moat-confidence-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, auto);
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 16px;
+}
+
+.moat-confidence-row > strong {
+  text-align: right;
+}
+
+.moat-signal-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 18px;
+}
+
+.moat-signal-grid > div {
+  padding: 18px;
+  border-radius: 18px;
+}
+
+.moat-signal-grid p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.moat-signal-grid p strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text);
 }
 
 .moat-intelligence-grid-secondary {
@@ -3045,6 +3102,8 @@ textarea {
   .moat-learning-metrics,
   .moat-intelligence-summary,
   .moat-intelligence-grid,
+  .moat-ranking-grid,
+  .moat-signal-grid,
   .moat-risk-index,
   .moat-selected-body,
   .moat-impact-strip,
@@ -3052,9 +3111,11 @@ textarea {
   .moat-outcome-reference,
   .moat-field-grid,
   .moat-learning-counts,
+  .moat-confidence-list,
   .moat-partner-grid,
   .moat-performance-row,
   .moat-value-row,
+  .moat-confidence-row,
   .moat-history-item,
   .moat-outcome-item,
   .result {
