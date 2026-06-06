@@ -1920,11 +1920,16 @@ textarea {
 .moat-learning-grid,
 .moat-risk-index,
 .moat-selected-body,
+.moat-confidence-intelligence,
+.moat-confidence-grid,
+.moat-confidence-reasoning,
 .moat-impact-strip,
 .moat-learning-metrics,
 .moat-intelligence-summary,
 .moat-intelligence-grid,
 .moat-ranking-grid,
+.moat-feedback-grid,
+.moat-learning-progress-grid,
 .moat-signal-grid,
 .moat-outcome-reference,
 .moat-field-grid,
@@ -2037,6 +2042,64 @@ textarea {
   line-height: 1.65;
 }
 
+.moat-confidence-intelligence {
+  gap: 14px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid rgba(91, 242, 200, 0.18);
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(13, 50, 45, 0.46), rgba(3, 14, 20, 0.74));
+}
+
+.moat-confidence-intelligence h4 {
+  margin: 0;
+}
+
+.moat-confidence-grid {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.moat-confidence-grid div,
+.moat-learning-progress-grid div {
+  padding: 14px;
+  border: 1px solid rgba(129, 171, 197, 0.15);
+  border-radius: 16px;
+  background: rgba(3, 14, 20, 0.64);
+}
+
+.moat-confidence-grid span,
+.moat-learning-progress-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.moat-confidence-grid strong,
+.moat-learning-progress-grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 1.25rem;
+}
+
+.moat-confidence-final {
+  border-color: rgba(91, 242, 200, 0.36) !important;
+  background: rgba(91, 242, 200, 0.11) !important;
+}
+
+.moat-confidence-reasoning {
+  gap: 8px;
+}
+
+.moat-confidence-reasoning ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
 .moat-action-row {
   margin-top: 18px;
   flex-wrap: wrap;
@@ -2107,11 +2170,13 @@ textarea {
   line-height: 1.45;
 }
 
-.moat-learning-intelligence {
+.moat-learning-intelligence,
+.moat-confidence-feedback {
   margin-bottom: 24px;
 }
 
 .moat-learning-intelligence > .result-meta,
+.moat-confidence-feedback > .result-meta,
 .moat-performance-rankings > .result-meta {
   max-width: 980px;
   margin: 10px 0 20px;
@@ -2176,6 +2241,16 @@ textarea {
 
 .moat-ranking-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.moat-feedback-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 18px;
+}
+
+.moat-learning-progress-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 14px;
 }
 
 .moat-intelligence-card {
@@ -3106,12 +3181,17 @@ textarea {
   .moat-signal-grid,
   .moat-risk-index,
   .moat-selected-body,
+  .moat-confidence-intelligence,
+  .moat-confidence-grid,
+  .moat-confidence-reasoning,
   .moat-impact-strip,
   .moat-impact-strip-compact,
   .moat-outcome-reference,
   .moat-field-grid,
   .moat-learning-counts,
   .moat-confidence-list,
+  .moat-feedback-grid,
+  .moat-learning-progress-grid,
   .moat-partner-grid,
   .moat-performance-row,
   .moat-value-row,

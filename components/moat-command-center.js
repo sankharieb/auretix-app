@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { buildConfidenceFeedback } from "../lib/moat-confidence-engine";
 import { buildMoatEngineSnapshot, buildOutcomeLearningSummary } from "../lib/moat-engine";
 import { buildLearningAnalytics } from "../lib/moat-learning-analytics";
 import { buildRecommendationPerformance } from "../lib/moat-recommendation-performance";
@@ -71,8 +72,30 @@ function percentLabel(value) {
   return `${Math.round(Number(value) || 0)}%`;
 }
 
+function signedPercentLabel(value) {
+  const rounded = Math.round(Number(value) || 0);
+
+  return `${rounded > 0 ? "+" : ""}${rounded}%`;
+}
+
 function plainLabel(value) {
   return value || "Unknown";
+}
+
+function confidenceSummaryLabel(item, fallback = "No signal yet") {
+  if (!item) {
+    return fallback;
+  }
+
+  return `${item.sku || item.product || "Recommendation"} | ${percentLabel(item.finalConfidence)}`;
+}
+
+function confidenceAdjustmentLabel(item, fallback = "No adjustment yet") {
+  if (!item) {
+    return fallback;
+  }
+
+  return `${item.sku || item.product || "Recommendation"} | ${signedPercentLabel(item.adjustment)}`;
 }
 
 function accuracySentence(item) {
@@ -143,11 +166,7 @@ export default function MoatCommandCenter() {
   const [selectedOutcomeDecisionId, setSelectedOutcomeDecisionId] = useState(null);
   const [outcomeForm, setOutcomeForm] = useState(defaultOutcomeFormFor(null));
 
-  const selectedRecommendation =
-    snapshot.recommendations.find((item) => item.id === selectedRecommendationId) ||
-    snapshot.recommendations[0];
   const executiveSummary = snapshot.executiveSummary;
-  const criticalQueue = snapshot.dailyDecisionQueue.slice(0, 5);
   const approvedDecisions = useMemo(
     () => decisionHistory.filter((decision) => decision.userAction === "approved"),
     [decisionHistory],
@@ -199,6 +218,34 @@ export default function MoatCommandCenter() {
       auditEventCount: serverRecommendationPerformance.auditEventCount || livePerformance.auditEventCount,
     };
   }, [decisionHistory, decisionOutcomes, serverRecommendationPerformance]);
+  const confidenceBundle = useMemo(
+    () =>
+      buildConfidenceFeedback({
+        recommendations: snapshot.recommendations || [],
+        decisionRecommendations: decisionHistory,
+        decisionOutcomes,
+        recommendationPerformance,
+      }),
+    [snapshot.recommendations, decisionHistory, decisionOutcomes, recommendationPerformance],
+  );
+  const confidenceFeedback = confidenceBundle.confidenceFeedback;
+  const activeRecommendations = confidenceBundle.recommendations.length
+    ? confidenceBundle.recommendations
+    : snapshot.recommendations;
+  const selectedRecommendation =
+    activeRecommendations.find((item) => item.id === selectedRecommendationId) ||
+    activeRecommendations[0];
+  const selectedConfidence = selectedRecommendation?.confidenceAnalysis || {
+    baseConfidence: selectedRecommendation?.confidence || 0,
+    recommendationAdjustment: 0,
+    supplierAdjustment: 0,
+    issueAdjustment: 0,
+    skuAdjustment: 0,
+    varianceAdjustment: 0,
+    finalConfidence: selectedRecommendation?.confidence || 0,
+    confidenceReasoning: [],
+  };
+  const criticalQueue = activeRecommendations.slice(0, 5);
   const bestRecommendationTypes = recommendationPerformance.recommendationTypeRankings
     .filter((item) => item.outcomesRecorded > 0)
     .slice(0, 5);
@@ -519,7 +566,7 @@ export default function MoatCommandCenter() {
         <div className="lab-card moat-queue-card">
           <div className="results-header">
             <h3>What needs action today</h3>
-            <span className="tier-chip">{snapshot.dailyDecisionQueue.length} ranked</span>
+            <span className="tier-chip">{activeRecommendations.length} ranked</span>
           </div>
           <div className="moat-decision-list">
             {criticalQueue.map((item) => (
@@ -536,7 +583,10 @@ export default function MoatCommandCenter() {
                 </span>
                 <strong>{item.problem}</strong>
                 <small>{item.whyItMatters}</small>
-                <em>{money(item.financialImpact)} impact | {item.confidence}% confidence</em>
+                <em>
+                  {money(item.financialImpact)} impact |{" "}
+                  {percentLabel(item.confidenceAnalysis?.finalConfidence || item.confidence)} tuned confidence
+                </em>
               </button>
             ))}
           </div>
@@ -572,6 +622,50 @@ export default function MoatCommandCenter() {
                 {selectedRecommendation?.recommendedAction} should protect about{" "}
                 {money(selectedRecommendation?.profitImpact.expectedBenefit || 0)} in modeled benefit.
               </p>
+            </div>
+          </div>
+          <div className="moat-confidence-intelligence">
+            <div className="results-header">
+              <h4>Confidence Intelligence</h4>
+              <span className="tier-chip">Human approval required</span>
+            </div>
+            <div className="moat-confidence-grid">
+              <div>
+                <span>Base Confidence</span>
+                <strong>{percentLabel(selectedConfidence.baseConfidence)}</strong>
+              </div>
+              <div>
+                <span>Recommendation History</span>
+                <strong>{signedPercentLabel(selectedConfidence.recommendationAdjustment)}</strong>
+              </div>
+              <div>
+                <span>Supplier History</span>
+                <strong>{signedPercentLabel(selectedConfidence.supplierAdjustment)}</strong>
+              </div>
+              <div>
+                <span>Issue History</span>
+                <strong>{signedPercentLabel(selectedConfidence.issueAdjustment)}</strong>
+              </div>
+              <div>
+                <span>SKU History</span>
+                <strong>{signedPercentLabel(selectedConfidence.skuAdjustment)}</strong>
+              </div>
+              <div>
+                <span>Variance</span>
+                <strong>{signedPercentLabel(selectedConfidence.varianceAdjustment)}</strong>
+              </div>
+              <div className="moat-confidence-final">
+                <span>Final Confidence</span>
+                <strong>{percentLabel(selectedConfidence.finalConfidence)}</strong>
+              </div>
+            </div>
+            <div className="moat-confidence-reasoning">
+              <span className="result-label">Why Confidence Changed</span>
+              <ul>
+                {selectedConfidence.confidenceReasoning.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
             </div>
           </div>
           <div className="button-row moat-action-row">
@@ -1009,6 +1103,123 @@ export default function MoatCommandCenter() {
           <span>Watched: {learningAnalytics.watchedRecommendations}</span>
           <span>Partner help: {learningAnalytics.partnerHelpRequests}</span>
           <span>Audit events loaded: {learningAnalytics.auditEventCount}</span>
+        </div>
+      </section>
+
+      <section className="lab-card moat-confidence-feedback">
+        <div className="results-header">
+          <div>
+            <span className="result-label">Confidence Feedback Loop</span>
+            <h3>Using outcome history to tune future confidence.</h3>
+          </div>
+          <span className="tier-chip">{confidenceFeedback.safetyMode.replaceAll("_", " ")}</span>
+        </div>
+        <p className="result-meta">
+          Confidence tuning is display-only in this phase. Auretix adjusts the confidence signal
+          from history, but it never approves, defers, watches, or requests partner help without a
+          human action.
+        </p>
+
+        <div className="moat-intelligence-summary moat-confidence-summary">
+          <div>
+            <span>Average Adjustment</span>
+            <strong>{signedPercentLabel(confidenceFeedback.averageConfidenceAdjustment)}</strong>
+            <small>Average movement from base to final confidence.</small>
+          </div>
+          <div>
+            <span>Recommendations Upgraded</span>
+            <strong>{confidenceFeedback.recommendationsUpgraded}</strong>
+            <small>Recommendations with confidence improved by history.</small>
+          </div>
+          <div>
+            <span>Recommendations Downgraded</span>
+            <strong>{confidenceFeedback.recommendationsDowngraded}</strong>
+            <small>Recommendations with confidence reduced by history.</small>
+          </div>
+          <div>
+            <span>Highest Confidence</span>
+            <strong>
+              {confidenceSummaryLabel(confidenceFeedback.highestConfidenceRecommendation)}
+            </strong>
+            <small>Top final confidence after learning adjustments.</small>
+          </div>
+        </div>
+
+        <div className="moat-feedback-grid">
+          <div className="moat-intelligence-card">
+            <div className="results-header">
+              <h4>Confidence Range</h4>
+              <span className="tier-chip">
+                {confidenceFeedback.confidenceBounds.minimum}-{confidenceFeedback.confidenceBounds.maximum}%
+              </span>
+            </div>
+            <div className="moat-confidence-list">
+              <div className="moat-confidence-row">
+                <span>
+                  <strong>Lowest confidence recommendation</strong>
+                  <small>Most cautious final confidence score after history.</small>
+                </span>
+                <strong>
+                  {confidenceSummaryLabel(confidenceFeedback.lowestConfidenceRecommendation)}
+                </strong>
+              </div>
+              <div className="moat-confidence-row">
+                <span>
+                  <strong>Largest positive adjustment</strong>
+                  <small>Recommendation most improved by historical evidence.</small>
+                </span>
+                <strong>
+                  {confidenceAdjustmentLabel(confidenceFeedback.largestPositiveAdjustment)}
+                </strong>
+              </div>
+              <div className="moat-confidence-row">
+                <span>
+                  <strong>Largest negative adjustment</strong>
+                  <small>Recommendation most reduced by historical evidence.</small>
+                </span>
+                <strong>
+                  {confidenceAdjustmentLabel(confidenceFeedback.largestNegativeAdjustment)}
+                </strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="moat-intelligence-card">
+            <div className="results-header">
+              <h4>Model Learning Progress</h4>
+              <span className="tier-chip">Outcome memory</span>
+            </div>
+            <div className="moat-learning-progress-grid">
+              <div>
+                <span>Total outcomes used</span>
+                <strong>{confidenceFeedback.modelLearningProgress.totalOutcomesUsed}</strong>
+              </div>
+              <div>
+                <span>Recommendation types learned</span>
+                <strong>{confidenceFeedback.modelLearningProgress.recommendationTypesLearned}</strong>
+              </div>
+              <div>
+                <span>Suppliers learned</span>
+                <strong>{confidenceFeedback.modelLearningProgress.suppliersLearned}</strong>
+              </div>
+              <div>
+                <span>SKUs learned</span>
+                <strong>{confidenceFeedback.modelLearningProgress.skusLearned}</strong>
+              </div>
+              <div>
+                <span>Average confidence uplift</span>
+                <strong>
+                  {signedPercentLabel(confidenceFeedback.modelLearningProgress.averageConfidenceUplift)}
+                </strong>
+              </div>
+              <div>
+                <span>Average confidence reduction</span>
+                <strong>
+                  {signedPercentLabel(confidenceFeedback.modelLearningProgress.averageConfidenceReduction)}
+                </strong>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
