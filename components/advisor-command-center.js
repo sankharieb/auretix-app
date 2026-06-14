@@ -13,36 +13,36 @@ const navLinks = [
   { label: "Sign in", href: "/login" },
 ];
 
-const goalButtons = [
+const advisorActions = [
   {
-    label: "Prevent stockouts",
+    label: "Review Stockouts",
     href: "/app/supply-chain",
-    detail: "Find SKUs, inbound timing, and service gaps that can break availability.",
+    detail: "Stockout dates, inbound risk, and service gaps.",
   },
   {
-    label: "Protect cash",
+    label: "Protect Cash",
     href: "/app/procurement",
-    detail: "See which buys to approve, defer, or stop before cash gets trapped.",
+    detail: "Buying decisions, cash required, and PO priority.",
   },
   {
-    label: "Review supplier risk",
+    label: "Review Suppliers",
     href: "/app/network",
-    detail: "Check backup paths, partner help, lead-time pressure, and reliability.",
+    detail: "Reliability concerns, backup paths, and partner support.",
   },
   {
-    label: "Make procurement decisions",
+    label: "Review Procurement Decisions",
     href: "/app/procurement",
-    detail: "Review purchase quantities, cash required, margin impact, and PO priority.",
+    detail: "Approve, defer, or watch purchase decisions.",
   },
   {
-    label: "Improve forecast confidence",
-    href: "/app/sku-risk",
-    detail: "Review SKU-level demand, forecast pressure, and risk score drivers.",
-  },
-  {
-    label: "Review learning performance",
+    label: "Review Learning & Accuracy",
     href: "/app/moat",
-    detail: "See outcomes, accuracy, confidence feedback, and verified impact.",
+    detail: "Outcomes, accuracy, confidence, and verified impact.",
+  },
+  {
+    label: "Show Everything",
+    href: "#advisor-priority-list",
+    detail: "Open the full ranked summary below.",
   },
 ];
 
@@ -96,18 +96,31 @@ function detailList(items, fallback) {
   return lines.map((line) => <li key={line}>{line}</li>);
 }
 
+function impactLabel(issue) {
+  if (issue.category === "Stockout Risk") {
+    return "Revenue Exposure";
+  }
+
+  if (issue.category === "Cash Opportunity") {
+    return "Cash Exposure";
+  }
+
+  return "Financial Impact";
+}
+
 export default function AdvisorCommandCenter() {
   const advisor = buildAuretixAdvisorCommandCenter();
   const health = advisor.healthSummary;
+  const briefing = advisor.executiveBriefing;
 
   return (
     <div className="app-shell advisor-command-shell">
       <header className="app-header advisor-topbar">
         <div>
           <div className="eyebrow">Auretix Advisor</div>
-          <h1>Daily business review.</h1>
+          <h1>Advisor briefing.</h1>
           <p className="hero-text">
-            A calm command center for the seller decisions that can cost money this week.
+            Auretix starts with what matters, then lets you drill into the details.
           </p>
         </div>
         <nav className="app-nav">
@@ -119,98 +132,113 @@ export default function AdvisorCommandCenter() {
         </nav>
       </header>
 
-      <section className="advisor-command-hero">
+      <section className="advisor-command-hero advisor-briefing-hero">
         <div className="advisor-conversation-panel">
           <span className="result-label">Daily briefing</span>
           <h2>{advisor.greeting}</h2>
           <div className="advisor-conversation-copy">
             <p>{advisor.reviewedStatement}</p>
             <p>{advisor.findingSummary}</p>
-            <p>{advisor.closingLine}</p>
+            <p>{briefing.leadRisk}</p>
+            <p>{briefing.consequence}</p>
+            <p>{briefing.recommendation}</p>
           </div>
+          <div className="advisor-secondary-findings">
+            <span>I also identified:</span>
+            <ul>
+              {briefing.additionalFindings.map((finding) => (
+                <li key={finding}>{finding}</li>
+              ))}
+            </ul>
+          </div>
+          <p className="advisor-focus-question">{briefing.focusQuestion}</p>
         </div>
-        <div className="advisor-signal-card">
-          <span>Brief generated</span>
-          <strong>{timeLabel(advisor.generatedAt)}</strong>
-          <small>Seeded demo data is active until live seller integrations are connected.</small>
-        </div>
-      </section>
 
-      <section className="advisor-health-grid" aria-label="Money at risk">
-        <div>
-          <span>Revenue at risk</span>
+        <aside className="advisor-signal-card advisor-briefing-snapshot">
+          <span>Business exposure</span>
           <strong>{money(health.revenueAtRisk)}</strong>
-          <small>Sales exposure from today&apos;s operating issues.</small>
-        </div>
-        <div>
-          <span>Margin at risk</span>
-          <strong>{money(health.marginAtRisk)}</strong>
-          <small>Gross margin exposed by timing, stockout, and buying decisions.</small>
-        </div>
-        <div>
-          <span>Cash exposure</span>
-          <strong>{money(health.cashExposure)}</strong>
-          <small>Cash tied up or requested by recommended actions.</small>
-        </div>
-        <div>
-          <span>Supplier risks</span>
-          <strong>{health.supplierRisks}</strong>
-          <small>Suppliers below target reliability or service confidence.</small>
-        </div>
-        <div>
-          <span>Pending decisions</span>
-          <strong>{health.pendingRecommendations}</strong>
-          <small>Recommendations still waiting for owner action.</small>
+          <small>Revenue at risk across today&apos;s operating issues.</small>
+          <div className="advisor-snapshot-metrics">
+            <div>
+              <span>Pending</span>
+              <strong>{health.pendingRecommendations}</strong>
+            </div>
+            <div>
+              <span>Suppliers</span>
+              <strong>{health.supplierRisks}</strong>
+            </div>
+            <div>
+              <span>Cash</span>
+              <strong>{money(health.cashExposure)}</strong>
+            </div>
+          </div>
+          <small>Brief generated {timeLabel(advisor.generatedAt)}.</small>
+        </aside>
+      </section>
+
+      <section className="advisor-action-section" aria-label="Advisor actions">
+        <div className="advisor-action-grid">
+          {advisorActions.map((action) => (
+            <Link className="advisor-action-button" href={action.href} key={action.label}>
+              <strong>{action.label}</strong>
+              <span>{action.detail}</span>
+            </Link>
+          ))}
         </div>
       </section>
 
-      <section className="advisor-priority-section">
+      <section className="advisor-priority-section" id="advisor-priority-list">
         <div className="results-header">
           <div>
-            <span className="result-label">What needs action today</span>
-            <h3>Here&apos;s what I recommend next</h3>
+            <span className="result-label">Ranked summary</span>
+            <h3>Only expand what you want to inspect</h3>
           </div>
-          <span className="tier-chip">{advisor.priorityIssues.length} ranked</span>
+          <span className="tier-chip">{advisor.priorityIssues.length} priorities</span>
         </div>
 
         {advisor.priorityIssues.length ? (
-          <div className="advisor-issue-grid">
+          <div className="advisor-ranked-list">
             {advisor.priorityIssues.map((issue, index) => (
-              <article className="advisor-issue-card" key={issue.id}>
-                <div className="advisor-card-head">
-                  <span className="advisor-category-badge">{issue.category}</span>
+              <details className="advisor-ranked-issue" key={issue.id}>
+                <summary>
+                  <span className="advisor-rank-label">Priority {index + 1}</span>
+                  <span className="advisor-rank-category">{issue.category}</span>
+                  <strong>{issue.sku || issue.issue}</strong>
+                  <span className="advisor-rank-impact">
+                    {impactLabel(issue)}: {issue.impact}
+                  </span>
                   <span className={`sku-priority ${priorityClass(issue.severity)}`}>
                     {issue.severity}
                   </span>
-                </div>
+                </summary>
 
-                <h4>
-                  <span>{index + 1}.</span> {issue.issue}
-                </h4>
-
-                <div className="advisor-issue-block">
-                  <span>Recommendation</span>
-                  <p>{issue.recommendation}</p>
-                </div>
-
-                <div className="advisor-issue-block">
-                  <span>Why</span>
-                  <p>{issue.why}</p>
-                </div>
-
-                <div className="advisor-compact-metrics">
-                  <div>
-                    <span>Impact</span>
-                    <strong>{issue.impact}</strong>
+                <div className="advisor-ranked-detail">
+                  <div className="advisor-ranked-main">
+                    <div>
+                      <span>Issue</span>
+                      <p>{issue.issue}</p>
+                    </div>
+                    <div>
+                      <span>Recommendation</span>
+                      <p>{issue.recommendation}</p>
+                    </div>
+                    <div>
+                      <span>Why</span>
+                      <p>{issue.why}</p>
+                    </div>
                   </div>
-                  <div>
-                    <span>Confidence</span>
-                    <strong>{percent(issue.confidence)}</strong>
-                  </div>
-                </div>
 
-                <details className="advisor-reasoning-details">
-                  <summary>Why Auretix thinks this</summary>
+                  <div className="advisor-ranked-metrics">
+                    <div>
+                      <span>Financial impact</span>
+                      <strong>{issue.impact}</strong>
+                    </div>
+                    <div>
+                      <span>Confidence</span>
+                      <strong>{percent(issue.confidence)}</strong>
+                    </div>
+                  </div>
+
                   <div className="advisor-detail-columns">
                     <div>
                       <span>Evidence</span>
@@ -230,17 +258,17 @@ export default function AdvisorCommandCenter() {
                       </ul>
                     </div>
                   </div>
-                </details>
 
-                <div className="advisor-card-actions">
-                  <Link className="button button-primary" href={issue.actionHref}>
-                    {issue.actionLabel}
-                  </Link>
-                  <Link className="button button-secondary" href={issue.secondaryActionHref}>
-                    {issue.secondaryActionLabel}
-                  </Link>
+                  <div className="advisor-card-actions">
+                    <Link className="button button-primary" href={issue.actionHref}>
+                      {issue.actionLabel}
+                    </Link>
+                    <Link className="button button-secondary" href={issue.secondaryActionHref}>
+                      {issue.secondaryActionLabel}
+                    </Link>
+                  </div>
                 </div>
-              </article>
+              </details>
             ))}
           </div>
         ) : (
@@ -251,29 +279,11 @@ export default function AdvisorCommandCenter() {
         )}
       </section>
 
-      <section className="advisor-goals-section">
-        <div className="results-header">
-          <div>
-            <span className="result-label">Choose the next move</span>
-            <h3>What would you like to solve?</h3>
-          </div>
-          <span className="tier-chip">Goal based</span>
-        </div>
-        <div className="advisor-goal-grid">
-          {goalButtons.map((goal) => (
-            <Link className="advisor-goal-card" href={goal.href} key={goal.label}>
-              <strong>{goal.label}</strong>
-              <span>{goal.detail}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
       <section className="advisor-deep-dive-section">
         <div className="results-header">
           <div>
-            <span className="result-label">Deep dives</span>
-            <h3>Specialized views stay available when you need detail</h3>
+            <span className="result-label">Dashboards second</span>
+            <h3>Deep dives stay available when you need detail</h3>
           </div>
           <span className="tier-chip">Drill down</span>
         </div>

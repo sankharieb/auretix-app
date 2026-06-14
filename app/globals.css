@@ -1963,12 +1963,15 @@ textarea {
 }
 
 .advisor-signal-card span,
+.advisor-snapshot-metrics span,
 .advisor-health-grid span,
 .advisor-priority-impact span,
 .advisor-confidence-row span,
 .advisor-issue-block span,
 .advisor-compact-metrics span,
-.advisor-detail-columns span {
+.advisor-detail-columns span,
+.advisor-ranked-main span,
+.advisor-ranked-metrics span {
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 900;
@@ -1993,6 +1996,9 @@ textarea {
 .advisor-evidence-grid,
 .advisor-compact-metrics,
 .advisor-detail-columns,
+.advisor-action-grid,
+.advisor-ranked-main,
+.advisor-ranked-metrics,
 .advisor-goal-grid,
 .advisor-deep-dive-grid {
   display: grid;
@@ -2043,6 +2049,121 @@ textarea {
 .advisor-conversation-copy {
   display: grid;
   gap: 10px;
+}
+
+.advisor-briefing-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.28fr);
+  margin-bottom: 16px;
+}
+
+.advisor-briefing-hero h2 {
+  max-width: 900px;
+}
+
+.advisor-briefing-hero .advisor-conversation-copy {
+  max-width: 960px;
+}
+
+.advisor-briefing-hero .advisor-conversation-copy p {
+  color: var(--text);
+  font-size: 1.18rem;
+}
+
+.advisor-secondary-findings {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid rgba(129, 171, 197, 0.14);
+  border-radius: 18px;
+  background: rgba(2, 10, 16, 0.42);
+}
+
+.advisor-secondary-findings span {
+  color: var(--text);
+  font-weight: 900;
+}
+
+.advisor-secondary-findings ul {
+  margin: 0;
+  padding-left: 19px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.advisor-focus-question {
+  margin-top: 16px !important;
+  color: var(--accent) !important;
+  font-weight: 900;
+}
+
+.advisor-briefing-snapshot {
+  align-content: start;
+}
+
+.advisor-briefing-snapshot > strong {
+  font-size: 2.1rem;
+}
+
+.advisor-snapshot-metrics {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0;
+}
+
+.advisor-snapshot-metrics > div {
+  padding: 12px;
+  border: 1px solid rgba(129, 171, 197, 0.14);
+  border-radius: 14px;
+  background: rgba(2, 10, 16, 0.5);
+}
+
+.advisor-snapshot-metrics strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 1.05rem;
+}
+
+.advisor-action-section {
+  margin-bottom: 22px;
+}
+
+.advisor-action-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.advisor-action-button {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 134px;
+  padding: 18px;
+  border: 1px solid rgba(91, 242, 200, 0.24);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(15, 48, 45, 0.76), rgba(3, 14, 20, 0.86));
+  color: var(--text);
+  text-decoration: none;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background 140ms ease;
+}
+
+.advisor-action-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(91, 242, 200, 0.48);
+  background: rgba(15, 48, 45, 0.88);
+}
+
+.advisor-action-button strong {
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.advisor-action-button span {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .advisor-issue-grid {
@@ -2150,6 +2271,106 @@ textarea {
 .advisor-empty-state span {
   color: var(--muted);
   line-height: 1.5;
+}
+
+.advisor-ranked-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.advisor-ranked-issue {
+  border: 1px solid rgba(129, 171, 197, 0.16);
+  border-radius: 18px;
+  background: rgba(3, 14, 20, 0.68);
+  overflow: hidden;
+}
+
+.advisor-ranked-issue summary {
+  display: grid;
+  grid-template-columns: 100px minmax(130px, 0.16fr) minmax(180px, 1fr) minmax(220px, 0.34fr) auto 42px;
+  gap: 14px;
+  align-items: center;
+  min-height: 82px;
+  padding: 16px 18px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.advisor-ranked-issue summary::-webkit-details-marker {
+  display: none;
+}
+
+.advisor-ranked-issue summary::after {
+  content: "+";
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(91, 242, 200, 0.26);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 1.25rem;
+  font-weight: 900;
+  justify-self: end;
+}
+
+.advisor-ranked-issue[open] summary::after {
+  content: "-";
+}
+
+.advisor-rank-label,
+.advisor-rank-category {
+  color: var(--accent-warm);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.advisor-rank-category {
+  color: var(--muted);
+}
+
+.advisor-rank-impact {
+  color: var(--text);
+  font-weight: 900;
+}
+
+.advisor-ranked-detail {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border-top: 1px solid rgba(129, 171, 197, 0.14);
+  background: rgba(9, 31, 44, 0.46);
+}
+
+.advisor-ranked-main {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.advisor-ranked-main > div,
+.advisor-ranked-metrics > div {
+  padding: 15px;
+  border: 1px solid rgba(129, 171, 197, 0.14);
+  border-radius: 16px;
+  background: rgba(2, 10, 16, 0.56);
+}
+
+.advisor-ranked-main p {
+  margin: 8px 0 0;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.advisor-ranked-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.advisor-ranked-metrics strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.3rem;
 }
 
 .advisor-priority-card {
@@ -3657,6 +3878,9 @@ textarea {
   .advisor-evidence-grid,
   .advisor-compact-metrics,
   .advisor-detail-columns,
+  .advisor-action-grid,
+  .advisor-ranked-main,
+  .advisor-ranked-metrics,
   .advisor-confidence-row,
   .advisor-goal-grid,
   .advisor-deep-dive-grid,
@@ -3726,6 +3950,15 @@ textarea {
   .moat-outcome-item,
   .result {
     grid-template-columns: 1fr;
+  }
+
+  .advisor-ranked-issue summary {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .advisor-ranked-issue summary::after {
+    justify-self: start;
   }
 
   .hero h1 {
