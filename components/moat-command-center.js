@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { buildDailyExecutiveBriefing } from "../lib/auretix-advisor-briefing";
 import { buildConfidenceFeedback } from "../lib/moat-confidence-engine";
 import { buildMoatEngineSnapshot, buildOutcomeLearningSummary } from "../lib/moat-engine";
 import { buildLearningAnalytics } from "../lib/moat-learning-analytics";
@@ -98,6 +99,65 @@ function confidenceAdjustmentLabel(item, fallback = "No adjustment yet") {
   return `${item.sku || item.product || "Recommendation"} | ${signedPercentLabel(item.adjustment)}`;
 }
 
+function ruleTypeLabel(ruleType) {
+  if (ruleType === "recommendation_type") {
+    return "Recommendation type";
+  }
+
+  if (ruleType === "issue_type") {
+    return "Issue type";
+  }
+
+  if (ruleType === "sku") {
+    return "SKU";
+  }
+
+  return "Supplier";
+}
+
+function guidanceRuleKey(rule) {
+  return `${rule.ruleType}:${String(rule.targetValue || "").trim().toLowerCase()}`;
+}
+
+function buildHumanGovernanceSummary(rules = []) {
+  const safeRules = Array.isArray(rules) ? rules : [];
+  const activeRules = safeRules.filter((rule) => rule.status === "approved");
+  const approvedAdjustments = activeRules.map((rule) => Number(rule.approvedAdjustment || 0));
+  const totalApprovedAdjustments = approvedAdjustments.reduce((sum, value) => sum + value, 0);
+
+  return {
+    pendingRules: safeRules.filter((rule) => rule.status === "pending").length,
+    activeRules: activeRules.length,
+    rejectedRules: safeRules.filter((rule) => rule.status === "rejected").length,
+    totalApprovedAdjustments,
+    averageApprovedAdjustment: approvedAdjustments.length
+      ? Math.round(totalApprovedAdjustments / approvedAdjustments.length)
+      : 0,
+    guidanceRulesInfluencingConfidence: activeRules.filter(
+      (rule) => Number(rule.approvedAdjustment || 0) !== 0,
+    ).length,
+  };
+}
+
+function localGuidanceRuleFrom(candidate, workspaceId) {
+  return {
+    id: `local_guidance_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    workspaceId,
+    ruleType: candidate.ruleType,
+    targetValue: candidate.targetValue,
+    suggestedAdjustment: candidate.suggestedAdjustment,
+    approvedAdjustment: null,
+    status: "pending",
+    reason: candidate.reason,
+    createdBy: "preview",
+    approvedBy: null,
+    rejectedBy: null,
+    createdAt: new Date().toISOString(),
+    approvedAt: null,
+    rejectedAt: null,
+  };
+}
+
 function accuracySentence(item) {
   if (!item?.outcomesRecorded) {
     return "No outcome-backed results yet.";
@@ -146,6 +206,7 @@ export default function MoatCommandCenter() {
   );
   const [decisionHistory, setDecisionHistory] = useState(localSnapshot.decisionHistory || []);
   const [decisionOutcomes, setDecisionOutcomes] = useState([]);
+  const [modelGuidanceRules, setModelGuidanceRules] = useState(localSnapshot.modelGuidanceRules || []);
   const [serverLearningAnalytics, setServerLearningAnalytics] = useState(
     buildLearningAnalytics({
       decisionRecommendations: localSnapshot.decisionHistory || [],
@@ -225,13 +286,24 @@ export default function MoatCommandCenter() {
         decisionRecommendations: decisionHistory,
         decisionOutcomes,
         recommendationPerformance,
+        modelGuidanceRules,
       }),
-    [snapshot.recommendations, decisionHistory, decisionOutcomes, recommendationPerformance],
+    [snapshot.recommendations, decisionHistory, decisionOutcomes, recommendationPerformance, modelGuidanceRules],
   );
   const confidenceFeedback = confidenceBundle.confidenceFeedback;
+  const humanGovernance = buildHumanGovernanceSummary(modelGuidanceRules);
   const activeRecommendations = confidenceBundle.recommendations.length
     ? confidenceBundle.recommendations
     : snapshot.recommendations;
+  const dailyBriefing = useMemo(
+    () =>
+      buildDailyExecutiveBriefing({
+        recommendations: activeRecommendations,
+        rows: snapshot.rows || [],
+        ownerName: snapshot.auth?.user?.name || snapshot.auth?.user?.email,
+      }),
+    [activeRecommendations, snapshot.auth?.user?.email, snapshot.auth?.user?.name, snapshot.rows],
+  );
   const selectedRecommendation =
     activeRecommendations.find((item) => item.id === selectedRecommendationId) ||
     activeRecommendations[0];
@@ -264,6 +336,17 @@ export default function MoatCommandCenter() {
   const skuOutcomeRankings = recommendationPerformance.skuRankings.slice(0, 5);
   const confidenceAdjustmentSummary =
     recommendationPerformance.confidenceAdjustmentSummary.slice(0, 6);
+  const existingGuidanceKeys = new Set(
+    modelGuidanceRules
+      .filter((rule) => rule.status === "pending" || rule.status === "approved")
+      .map(guidanceRuleKey),
+  );
+  const guidanceCandidates = (confidenceFeedback.guidanceCandidates || [])
+    .filter((candidate) => !existingGuidanceKeys.has(guidanceRuleKey(candidate)))
+    .slice(0, 6);
+  const pendingGuidanceRules = modelGuidanceRules.filter((rule) => rule.status === "pending");
+  const activeGuidanceRules = modelGuidanceRules.filter((rule) => rule.status === "approved");
+  const rejectedGuidanceRules = modelGuidanceRules.filter((rule) => rule.status === "rejected");
 
   useEffect(() => {
     let isActive = true;
@@ -286,6 +369,7 @@ export default function MoatCommandCenter() {
         setWorkspaceId(data.workspaceId || "workspace_demo");
         setDecisionHistory(data.decisionHistory || []);
         setDecisionOutcomes(data.decisionOutcomes || []);
+        setModelGuidanceRules(data.modelGuidanceRules || []);
         setServerLearningAnalytics(
           data.learningAnalytics ||
             buildLearningAnalytics({
@@ -347,6 +431,141 @@ export default function MoatCommandCenter() {
       ...current,
       [field]: value,
     }));
+  }
+
+  function upsertGuidanceRule(rule) {
+    setModelGuidanceRules((current) => {
+      const existingIndex = current.findIndex((entry) => entry.id === rule.id);
+
+      if (existingIndex >= 0) {
+        return current.map((entry) => (entry.id === rule.id ? rule : entry));
+      }
+
+      return [rule, ...current];
+    });
+  }
+
+  async function postGuidanceAction(payload) {
+    const response = await fetch("/api/moat-engine", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error("Guidance action could not be saved to the server.");
+    }
+
+    return response.json();
+  }
+
+  async function proposeGuidanceRule(candidate) {
+    setIsSaving(true);
+
+    const payload = {
+      action: "propose_guidance_rule",
+      workspaceId,
+      ruleType: candidate.ruleType,
+      targetValue: candidate.targetValue,
+      suggestedAdjustment: candidate.suggestedAdjustment,
+      reason: candidate.reason,
+    };
+
+    try {
+      const data = await postGuidanceAction(payload);
+      upsertGuidanceRule(data.rule);
+      setMessage(
+        `Guidance proposal created for ${candidate.targetValue}: ${signedPercentLabel(candidate.suggestedAdjustment)}. Human approval is still required.`,
+      );
+    } catch {
+      const localRule = localGuidanceRuleFrom(candidate, workspaceId);
+      upsertGuidanceRule(localRule);
+      setSource("preview");
+      setMessage(
+        `Guidance proposal created in preview mode for ${candidate.targetValue}. Approve it to test guided confidence locally.`,
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function approveGuidanceRule(rule) {
+    const duplicate = modelGuidanceRules.find(
+      (entry) => entry.id !== rule.id && entry.status === "approved" && guidanceRuleKey(entry) === guidanceRuleKey(rule),
+    );
+
+    if (duplicate) {
+      setMessage(`An active guidance rule already exists for ${rule.targetValue}.`);
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const data = await postGuidanceAction({
+        action: "approve_guidance_rule",
+        workspaceId,
+        ruleId: rule.id,
+      });
+
+      if (data.duplicateBlocked) {
+        setMessage(data.message || `An active guidance rule already exists for ${rule.targetValue}.`);
+      } else {
+        upsertGuidanceRule(data.rule);
+        setMessage(
+          `Guidance rule approved for ${rule.targetValue}. Approved adjustment: ${signedPercentLabel(data.rule.approvedAdjustment)}.`,
+        );
+      }
+    } catch {
+      const nextRule = {
+        ...rule,
+        status: "approved",
+        approvedAdjustment: rule.suggestedAdjustment,
+        approvedBy: "preview",
+        approvedAt: new Date().toISOString(),
+        rejectedBy: null,
+        rejectedAt: null,
+      };
+
+      upsertGuidanceRule(nextRule);
+      setSource("preview");
+      setMessage(
+        `Guidance rule approved locally for ${rule.targetValue}. Approved adjustment: ${signedPercentLabel(nextRule.approvedAdjustment)}.`,
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function rejectGuidanceRule(rule) {
+    setIsSaving(true);
+
+    try {
+      const data = await postGuidanceAction({
+        action: "reject_guidance_rule",
+        workspaceId,
+        ruleId: rule.id,
+      });
+
+      upsertGuidanceRule(data.rule);
+      setMessage(`Guidance rule rejected for ${rule.targetValue}.`);
+    } catch {
+      const nextRule = {
+        ...rule,
+        status: "rejected",
+        approvedAdjustment: null,
+        rejectedBy: "preview",
+        rejectedAt: new Date().toISOString(),
+      };
+
+      upsertGuidanceRule(nextRule);
+      setSource("preview");
+      setMessage(`Guidance rule rejected locally for ${rule.targetValue}.`);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   async function recordDecision(recommendation, userAction) {
@@ -497,6 +716,18 @@ export default function MoatCommandCenter() {
     }
   }
 
+  function reviewBriefingItem(item) {
+    if (item?.recommendationId) {
+      setSelectedRecommendationId(item.recommendationId);
+    }
+
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById("moat-recommendation-detail")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   return (
     <div className="app-shell seller-risk-shell moat-shell">
       <header className="app-header">
@@ -519,6 +750,86 @@ export default function MoatCommandCenter() {
           <Link href="/login">Sign in</Link>
         </nav>
       </header>
+
+      <section className="lab-card advisor-briefing">
+        <div className="advisor-briefing-header">
+          <div>
+            <span className="result-label">Daily Executive Briefing</span>
+            <h2>{dailyBriefing.greeting}</h2>
+            <p>{dailyBriefing.summary}</p>
+          </div>
+          <span className="tier-chip">Generated {formatTime(dailyBriefing.generatedAt)}</span>
+        </div>
+
+        <div className="advisor-briefing-grid">
+          {dailyBriefing.items.map((item, index) => (
+            <article className="advisor-briefing-card" key={item.id}>
+              <div className="advisor-card-head">
+                <span className="advisor-category-badge">{item.category}</span>
+                <span className={`sku-priority ${priorityClass(item.severity)}`}>
+                  {item.severity}
+                </span>
+              </div>
+              <h3>
+                <span>{index + 1}.</span> {item.title}
+              </h3>
+
+              <div className="advisor-impact-row">
+                <div>
+                  <span>Potential impact</span>
+                  <strong>{money(item.financialImpact)}</strong>
+                </div>
+                <div>
+                  <span>Recommended action</span>
+                  <strong>{item.recommendedAction}</strong>
+                </div>
+              </div>
+
+              <div className="advisor-briefing-columns">
+                <div>
+                  <span className="result-label">{item.reasonIntro}</span>
+                  <ul>
+                    {item.evidence.map((evidence) => (
+                      <li key={evidence}>{evidence}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <span className="result-label">{item.consequenceIntro}</span>
+                  <ul>
+                    {item.consequences.map((consequence) => (
+                      <li key={consequence}>{consequence}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="advisor-confidence-strip">
+                <div>
+                  <span>Confidence</span>
+                  <strong>{percentLabel(item.confidence)}</strong>
+                </div>
+                <ul>
+                  {item.confidenceReasoning.slice(0, 4).map((reason) => (
+                    <li key={reason}>{reason}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="advisor-next-step">
+                <p>{item.nextStep}</p>
+                <button
+                  className="button button-secondary"
+                  onClick={() => reviewBriefingItem(item)}
+                  type="button"
+                >
+                  Review Recommendation
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <section className={`moat-status-card ${migrationRequired ? "moat-status-warning" : ""}`}>
         <div>
@@ -592,7 +903,7 @@ export default function MoatCommandCenter() {
           </div>
         </div>
 
-        <div className="lab-card moat-focus-card">
+        <div className="lab-card moat-focus-card" id="moat-recommendation-detail">
           <div className="results-header">
             <h3>Recommended move</h3>
             <span className={`sku-priority ${priorityClass(selectedRecommendation?.riskIndex.riskLevel || "watch")}`}>

@@ -9,6 +9,11 @@ import {
   getMoatEngineBundle,
   recordMoatDecisionOutcome,
 } from "../../../lib/moat-engine-store.js";
+import {
+  approveModelGuidanceRule,
+  proposeModelGuidanceRule,
+  rejectModelGuidanceRule,
+} from "../../../lib/moat-model-guidance-store.js";
 
 export async function GET(request) {
   try {
@@ -53,6 +58,25 @@ export async function POST(request) {
     }
 
     const body = await request.json();
+
+    if (body.action === "propose_guidance_rule") {
+      const result = await proposeModelGuidanceRule(body, context);
+
+      return NextResponse.json({ ok: true, ...result }, { status: 201 });
+    }
+
+    if (body.action === "approve_guidance_rule") {
+      const result = await approveModelGuidanceRule(body, context);
+
+      return NextResponse.json({ ok: true, ...result });
+    }
+
+    if (body.action === "reject_guidance_rule") {
+      const result = await rejectModelGuidanceRule(body, context);
+
+      return NextResponse.json({ ok: true, ...result });
+    }
+
     const decision = await createMoatDecisionAction(body, context);
 
     return NextResponse.json({ ok: true, decision }, { status: 201 });
