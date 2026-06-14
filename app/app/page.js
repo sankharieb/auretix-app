@@ -1,5 +1,5 @@
-import SellerRescueBoard from "../../components/seller-rescue-board";
+import AdvisorCommandCenter from "../../components/advisor-command-center";
 
 export default function AppOverviewPage() {
-  return <SellerRescueBoard />;
+  return <AdvisorCommandCenter />;
 }
