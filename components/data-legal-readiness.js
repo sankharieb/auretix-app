@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import AppNavigation from "./app-navigation";
 
 const storageKey = "auretix-data-legal-readiness-v1";
 
@@ -303,17 +303,7 @@ export default function DataLegalReadiness() {
             we need consent, minimum data scope, security controls, platform readiness, and proof tracking.
           </p>
         </div>
-        <nav className="app-nav">
-          <Link href="/app">Rescue board</Link>
-          <Link href="/app/moat">Moat engine</Link>
-          <Link href="/app/network">Network</Link>
-          <Link href="/app/sku-risk">SKU risk</Link>
-          <Link href="/app/procurement">Procurement</Link>
-          <Link href="/app/supply-chain">Supply chain</Link>
-          <Link href="/app/readiness">Readiness</Link>
-          <Link href="/app/data-readiness">Data readiness</Link>
-          <Link href="/login">Sign in</Link>
-        </nav>
+        <AppNavigation />
       </header>
 
       <section className={`data-gate-card data-gate-${gateState.className}`}>

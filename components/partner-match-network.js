@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import AppNavigation from "./app-navigation";
 import {
   getScoredSkus,
   integer,
@@ -559,7 +559,7 @@ export default function PartnerMatchNetwork() {
     <div className="app-shell partner-network-shell seller-risk-shell">
       <header className="app-header">
         <div>
-          <div className="eyebrow">Auretix Network</div>
+          <div className="eyebrow">Partner investigation</div>
           <h1>Route seller risk to the right partner at the right time.</h1>
           <p className="hero-text">
             Auretix can become more than software: when a SKU risk needs freight,
@@ -567,17 +567,7 @@ export default function PartnerMatchNetwork() {
             match with consent and fee disclosure built in.
           </p>
         </div>
-        <nav className="app-nav">
-          <Link href="/app">Rescue board</Link>
-          <Link href="/app/moat">Moat engine</Link>
-          <Link href="/app/network">Network</Link>
-          <Link href="/app/sku-risk">SKU risk</Link>
-          <Link href="/app/procurement">Procurement</Link>
-          <Link href="/app/supply-chain">Supply chain</Link>
-          <Link href="/app/readiness">Readiness</Link>
-          <Link href="/app/data-readiness">Data readiness</Link>
-          <Link href="/login">Sign in</Link>
-        </nav>
+        <AppNavigation />
       </header>
 
       <section className="seller-risk-metric-grid">

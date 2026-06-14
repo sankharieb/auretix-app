@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import AppNavigation from "./app-navigation";
 import {
   auretixFeatureCatalog,
   customerNeeds,
@@ -236,16 +236,7 @@ export default function ReadinessBoard() {
             integration work out of live customer promises until it is proven.
           </p>
         </div>
-        <nav className="app-nav">
-          <Link href="/app">Rescue board</Link>
-          <Link href="/app/moat">Moat engine</Link>
-          <Link href="/app/network">Network</Link>
-          <Link href="/app/procurement">Procurement</Link>
-          <Link href="/app/supply-chain">Supply chain</Link>
-          <Link href="/app/readiness">Readiness</Link>
-          <Link href="/app/data-readiness">Data readiness</Link>
-          <Link href="/login">Sign in</Link>
-        </nav>
+        <AppNavigation />
       </header>
 
       <section className="dashboard-stack readiness-stack">

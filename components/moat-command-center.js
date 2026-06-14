@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import AppNavigation from "./app-navigation";
 import { buildDailyExecutiveBriefing } from "../lib/auretix-advisor-briefing";
 import { buildConfidenceFeedback } from "../lib/moat-confidence-engine";
 import { buildMoatEngineSnapshot, buildOutcomeLearningSummary } from "../lib/moat-engine";
@@ -356,7 +356,7 @@ export default function MoatCommandCenter() {
         const response = await fetch("/api/moat-engine?workspaceId=workspace_demo");
 
         if (!response.ok) {
-          throw new Error("Moat engine API is not available in preview mode.");
+          throw new Error("Learning API is not available in preview mode.");
         }
 
         const data = await response.json();
@@ -732,23 +732,14 @@ export default function MoatCommandCenter() {
     <div className="app-shell seller-risk-shell moat-shell">
       <header className="app-header">
         <div>
-          <div className="eyebrow">Auretix Moat Engine</div>
+          <div className="eyebrow">Learning and accuracy</div>
           <h1>Turn every rescue decision into operating intelligence.</h1>
           <p className="hero-text">
             The moat layer tracks risk scores, expected profit impact, supplier behavior,
             partner match outcomes, and whether each recommendation was right over time.
           </p>
         </div>
-        <nav className="app-nav">
-          <Link href="/app">Rescue board</Link>
-          <Link href="/app/moat">Moat engine</Link>
-          <Link href="/app/network">Network</Link>
-          <Link href="/app/sku-risk">SKU risk</Link>
-          <Link href="/app/procurement">Procurement</Link>
-          <Link href="/app/supply-chain">Supply chain</Link>
-          <Link href="/app/data-readiness">Data readiness</Link>
-          <Link href="/login">Sign in</Link>
-        </nav>
+        <AppNavigation />
       </header>
 
       <section className="lab-card advisor-briefing">

@@ -181,6 +181,79 @@ textarea {
   text-decoration: none;
 }
 
+.advisor-primary-nav {
+  align-items: flex-start;
+}
+
+.app-nav-menu {
+  position: relative;
+}
+
+.app-nav-menu summary {
+  display: block;
+  padding: 10px 14px;
+  border: 1px solid rgba(129, 171, 197, 0.2);
+  border-radius: 999px;
+  background: rgba(9, 28, 39, 0.75);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+}
+
+.app-nav-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.app-nav-menu summary::after {
+  content: " +";
+  color: var(--accent);
+}
+
+.app-nav-menu[open] summary {
+  border-color: rgba(91, 242, 200, 0.38);
+}
+
+.app-nav-menu[open] summary::after {
+  content: " -";
+}
+
+.app-nav-dropdown {
+  position: absolute;
+  right: auto;
+  z-index: 10;
+  display: grid;
+  gap: 8px;
+  min-width: 230px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid rgba(129, 171, 197, 0.22);
+  border-radius: 18px;
+  background: rgba(3, 14, 20, 0.98);
+  box-shadow: var(--shadow);
+}
+
+.app-nav-menu:not([open]) .app-nav-dropdown {
+  display: none;
+}
+
+.app-nav-dropdown-right {
+  right: 0;
+}
+
+.app-nav-dropdown a {
+  border-radius: 12px;
+}
+
+.app-nav-section-label {
+  margin: 6px 2px 0;
+  color: var(--accent-warm);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .app-lab-layout {
   align-items: start;
 }
@@ -1997,6 +2070,7 @@ textarea {
 .advisor-compact-metrics,
 .advisor-detail-columns,
 .advisor-action-grid,
+.advisor-problem-grid,
 .advisor-ranked-main,
 .advisor-ranked-metrics,
 .advisor-goal-grid,
@@ -2163,6 +2237,59 @@ textarea {
 .advisor-action-button span {
   color: var(--muted);
   font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.advisor-problem-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.advisor-problem-card {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  border: 1px solid rgba(91, 242, 200, 0.24);
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg, rgba(15, 48, 45, 0.68), rgba(3, 14, 20, 0.88));
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.22);
+}
+
+.advisor-problem-rank,
+.advisor-problem-impact span,
+.advisor-problem-recommendation span {
+  color: var(--accent-warm);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.advisor-problem-card h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.25;
+}
+
+.advisor-problem-impact,
+.advisor-problem-recommendation {
+  padding: 14px;
+  border: 1px solid rgba(129, 171, 197, 0.14);
+  border-radius: 16px;
+  background: rgba(2, 10, 16, 0.5);
+}
+
+.advisor-problem-impact strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.7rem;
+  line-height: 1.05;
+}
+
+.advisor-problem-recommendation p {
+  margin: 8px 0 0;
+  color: var(--text);
+  font-weight: 800;
   line-height: 1.45;
 }
 
@@ -3879,6 +4006,7 @@ textarea {
   .advisor-compact-metrics,
   .advisor-detail-columns,
   .advisor-action-grid,
+  .advisor-problem-grid,
   .advisor-ranked-main,
   .advisor-ranked-metrics,
   .advisor-confidence-row,

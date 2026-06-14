@@ -1,9 +1,9 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Auretix | AI Decision Engine for Supply Chain",
+  title: "Auretix | Advisor for Inventory, Procurement, and Supply Chain",
   description:
-    "Auretix is an AI-powered decision engine that helps supply chain teams predict inventory risks, optimize operations, and act with confidence.",
+    "Auretix helps sellers find inventory, procurement, and supply chain risks before they cost money.",
 };
 
 export default function RootLayout({ children }) {

@@ -1,78 +1,7 @@
 import Link from "next/link";
+import AppNavigation from "./app-navigation";
 import { buildAuretixAdvisorCommandCenter } from "../lib/auretix-advisor-engine";
 import { money, priorityClass } from "../lib/sku-risk-model";
-
-const navLinks = [
-  { label: "Advisor", href: "/app" },
-  { label: "Stockouts", href: "/app/supply-chain" },
-  { label: "Cash", href: "/app/procurement" },
-  { label: "Suppliers", href: "/app/network" },
-  { label: "Procurement", href: "/app/procurement" },
-  { label: "Learning", href: "/app/moat" },
-  { label: "Partners", href: "/app/network" },
-  { label: "Sign in", href: "/login" },
-];
-
-const advisorActions = [
-  {
-    label: "Review Stockouts",
-    href: "/app/supply-chain",
-    detail: "Stockout dates, inbound risk, and service gaps.",
-  },
-  {
-    label: "Protect Cash",
-    href: "/app/procurement",
-    detail: "Buying decisions, cash required, and PO priority.",
-  },
-  {
-    label: "Review Suppliers",
-    href: "/app/network",
-    detail: "Reliability concerns, backup paths, and partner support.",
-  },
-  {
-    label: "Review Procurement Decisions",
-    href: "/app/procurement",
-    detail: "Approve, defer, or watch purchase decisions.",
-  },
-  {
-    label: "Review Learning & Accuracy",
-    href: "/app/moat",
-    detail: "Outcomes, accuracy, confidence, and verified impact.",
-  },
-  {
-    label: "Show Everything",
-    href: "#advisor-priority-list",
-    detail: "Open the full ranked summary below.",
-  },
-];
-
-const deepDiveCards = [
-  {
-    title: "SKU Risk",
-    href: "/app/sku-risk",
-    copy: "Inspect stockout timing, cash exposure, score drivers, and SKU-level assumptions.",
-  },
-  {
-    title: "Procurement",
-    href: "/app/procurement",
-    copy: "Decide what to buy, how much to spend, and which PO should move first.",
-  },
-  {
-    title: "Supply Chain",
-    href: "/app/supply-chain",
-    copy: "Review days of cover, inbound timing, service continuity, and flow risk.",
-  },
-  {
-    title: "Learning",
-    href: "/app/moat",
-    copy: "Measure recommendation accuracy, financial impact, confidence feedback, and outcomes.",
-  },
-  {
-    title: "Partners",
-    href: "/app/network",
-    copy: "Request freight, backup supplier, wholesale, or 3PL partner support.",
-  },
-];
 
 function percent(value) {
   return `${Math.round(Number(value) || 0)}%`;
@@ -112,24 +41,19 @@ export default function AdvisorCommandCenter() {
   const advisor = buildAuretixAdvisorCommandCenter();
   const health = advisor.healthSummary;
   const briefing = advisor.executiveBriefing;
+  const advisorProblems = advisor.advisorProblems || [];
 
   return (
     <div className="app-shell advisor-command-shell">
       <header className="app-header advisor-topbar">
         <div>
           <div className="eyebrow">Auretix Advisor</div>
-          <h1>Advisor briefing.</h1>
+          <h1>What can cost money today?</h1>
           <p className="hero-text">
-            Auretix starts with what matters, then lets you drill into the details.
+            Auretix decides what matters first. Deeper tools stay behind investigations.
           </p>
         </div>
-        <nav className="app-nav">
-          {navLinks.map((link) => (
-            <Link href={link.href} key={`${link.label}-${link.href}`}>
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        <AppNavigation />
       </header>
 
       <section className="advisor-command-hero advisor-briefing-hero">
@@ -176,13 +100,25 @@ export default function AdvisorCommandCenter() {
         </aside>
       </section>
 
-      <section className="advisor-action-section" aria-label="Advisor actions">
-        <div className="advisor-action-grid">
-          {advisorActions.map((action) => (
-            <Link className="advisor-action-button" href={action.href} key={action.label}>
-              <strong>{action.label}</strong>
-              <span>{action.detail}</span>
-            </Link>
+      <section className="advisor-action-section" aria-label="Advisor investigations">
+        <div className="advisor-problem-grid">
+          {advisorProblems.map((problem, index) => (
+            <article className="advisor-problem-card" key={problem.id}>
+              <div className="advisor-problem-rank">Issue {index + 1}</div>
+              <span className="advisor-rank-category">{problem.label}</span>
+              <h3>{problem.issue}</h3>
+              <div className="advisor-problem-impact">
+                <span>{problem.impactLabel}</span>
+                <strong>{problem.impact}</strong>
+              </div>
+              <div className="advisor-problem-recommendation">
+                <span>Recommended action</span>
+                <p>{problem.recommendation}</p>
+              </div>
+              <Link className="button button-primary" href={problem.href}>
+                {problem.actionLabel}
+              </Link>
+            </article>
           ))}
         </div>
       </section>
@@ -277,24 +213,6 @@ export default function AdvisorCommandCenter() {
             <span>Review the deep dives below when you want to inspect SKU, cash, supplier, or partner signals.</span>
           </div>
         )}
-      </section>
-
-      <section className="advisor-deep-dive-section">
-        <div className="results-header">
-          <div>
-            <span className="result-label">Dashboards second</span>
-            <h3>Deep dives stay available when you need detail</h3>
-          </div>
-          <span className="tier-chip">Drill down</span>
-        </div>
-        <div className="advisor-deep-dive-grid">
-          {deepDiveCards.map((card) => (
-            <Link className="advisor-deep-dive-card" href={card.href} key={card.title}>
-              <strong>{card.title}</strong>
-              <span>{card.copy}</span>
-            </Link>
-          ))}
-        </div>
       </section>
     </div>
   );

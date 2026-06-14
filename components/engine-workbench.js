@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
 import { useEffect, useState } from "react";
+import AppNavigation from "./app-navigation";
 import {
   buildDecisionQueue,
   buildInitialActionState,
@@ -3756,21 +3756,7 @@ export default function EngineWorkbench({
           <h1>{title}</h1>
           <p className="hero-text">{intro}</p>
         </div>
-        <nav className="app-nav">
-          <Link href="/app">Rescue board</Link>
-          <Link href="/app/moat">Moat engine</Link>
-          <Link href="/app/network">Network</Link>
-          <Link href="/app/sku-risk">SKU risk</Link>
-          <Link href="/app/procurement">Procurement</Link>
-          <Link href="/app/supply-chain">Supply chain</Link>
-          <Link href="/app/readiness">Readiness</Link>
-          <Link href="/app/data-readiness">Data readiness</Link>
-          {accountContext?.mode === "supabase" ? (
-            <Link href="/logout">Sign out</Link>
-          ) : (
-            <Link href="/login">Sign in</Link>
-          )}
-        </nav>
+        <AppNavigation />
       </header>
 
       {accountContext ? (
