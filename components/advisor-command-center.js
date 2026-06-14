@@ -2,36 +2,47 @@ import Link from "next/link";
 import { buildAuretixAdvisorCommandCenter } from "../lib/auretix-advisor-engine";
 import { money, priorityClass } from "../lib/sku-risk-model";
 
+const navLinks = [
+  { label: "Advisor", href: "/app" },
+  { label: "Stockouts", href: "/app/supply-chain" },
+  { label: "Cash", href: "/app/procurement" },
+  { label: "Suppliers", href: "/app/network" },
+  { label: "Procurement", href: "/app/procurement" },
+  { label: "Learning", href: "/app/moat" },
+  { label: "Partners", href: "/app/network" },
+  { label: "Sign in", href: "/login" },
+];
+
 const goalButtons = [
   {
     label: "Prevent stockouts",
     href: "/app/supply-chain",
-    detail: "Find SKUs and inbound issues that can break service.",
+    detail: "Find SKUs, inbound timing, and service gaps that can break availability.",
   },
   {
     label: "Protect cash",
     href: "/app/procurement",
-    detail: "See what to buy, defer, or stop funding.",
+    detail: "See which buys to approve, defer, or stop before cash gets trapped.",
   },
   {
     label: "Review supplier risk",
-    href: "/app/supply-chain",
-    detail: "Check reliability, lead-time pressure, and backup paths.",
+    href: "/app/network",
+    detail: "Check backup paths, partner help, lead-time pressure, and reliability.",
   },
   {
     label: "Make procurement decisions",
     href: "/app/procurement",
-    detail: "Approve, defer, or watch PO recommendations.",
+    detail: "Review purchase quantities, cash required, margin impact, and PO priority.",
   },
   {
     label: "Improve forecast confidence",
     href: "/app/sku-risk",
-    detail: "Review SKU-level demand and risk signals.",
+    detail: "Review SKU-level demand, forecast pressure, and risk score drivers.",
   },
   {
     label: "Review learning performance",
     href: "/app/moat",
-    detail: "See outcomes, accuracy, and confidence feedback.",
+    detail: "See outcomes, accuracy, confidence feedback, and verified impact.",
   },
 ];
 
@@ -39,25 +50,25 @@ const deepDiveCards = [
   {
     title: "SKU Risk",
     href: "/app/sku-risk",
-    copy: "Inspect SKU-level risk, stockout timing, cash exposure, and score drivers.",
+    copy: "Inspect stockout timing, cash exposure, score drivers, and SKU-level assumptions.",
   },
   {
     title: "Procurement",
     href: "/app/procurement",
-    copy: "Decide what to buy, how much cash is required, and which PO should move first.",
+    copy: "Decide what to buy, how much to spend, and which PO should move first.",
   },
   {
     title: "Supply Chain",
     href: "/app/supply-chain",
-    copy: "Review flow risk, days of cover, inbound timing, and service continuity.",
+    copy: "Review days of cover, inbound timing, service continuity, and flow risk.",
   },
   {
-    title: "Moat Engine",
+    title: "Learning",
     href: "/app/moat",
     copy: "Measure recommendation accuracy, financial impact, confidence feedback, and outcomes.",
   },
   {
-    title: "Network",
+    title: "Partners",
     href: "/app/network",
     copy: "Request freight, backup supplier, wholesale, or 3PL partner support.",
   },
@@ -75,6 +86,16 @@ function timeLabel(value) {
   }
 }
 
+function detailList(items, fallback) {
+  const lines = Array.isArray(items) ? items.filter(Boolean) : [];
+
+  if (!lines.length) {
+    return <li>{fallback}</li>;
+  }
+
+  return lines.map((line) => <li key={line}>{line}</li>);
+}
+
 export default function AdvisorCommandCenter() {
   const advisor = buildAuretixAdvisorCommandCenter();
   const health = advisor.healthSummary;
@@ -84,40 +105,38 @@ export default function AdvisorCommandCenter() {
       <header className="app-header advisor-topbar">
         <div>
           <div className="eyebrow">Auretix Advisor</div>
-          <h1>Your AI operating brain for supply chain and procurement.</h1>
+          <h1>Daily business review.</h1>
           <p className="hero-text">
-            Auretix reviews inventory, supplier reliability, inbound timing, cash exposure,
-            recommendation outcomes, and partner options so you know what needs attention today.
+            A calm command center for the seller decisions that can cost money this week.
           </p>
         </div>
         <nav className="app-nav">
-          <Link href="/app">Advisor</Link>
-          <Link href="/app/sku-risk">SKU risk</Link>
-          <Link href="/app/procurement">Procurement</Link>
-          <Link href="/app/supply-chain">Supply chain</Link>
-          <Link href="/app/moat">Moat engine</Link>
-          <Link href="/app/network">Network</Link>
-          <Link href="/login">Sign in</Link>
+          {navLinks.map((link) => (
+            <Link href={link.href} key={`${link.label}-${link.href}`}>
+              {link.label}
+            </Link>
+          ))}
         </nav>
       </header>
 
       <section className="advisor-command-hero">
-        <div>
-          <span className="result-label">Today&apos;s operating brief</span>
+        <div className="advisor-conversation-panel">
+          <span className="result-label">Daily briefing</span>
           <h2>{advisor.greeting}</h2>
-          <p>{advisor.summary}</p>
-          <p className="advisor-review-copy">
-            I reviewed {advisor.reviewedSignals.join(", ")}. Here is what matters most.
-          </p>
+          <div className="advisor-conversation-copy">
+            <p>{advisor.reviewedStatement}</p>
+            <p>{advisor.findingSummary}</p>
+            <p>{advisor.closingLine}</p>
+          </div>
         </div>
         <div className="advisor-signal-card">
-          <span>Generated</span>
+          <span>Brief generated</span>
           <strong>{timeLabel(advisor.generatedAt)}</strong>
-          <small>Seeded demo intelligence is active until live integrations are connected.</small>
+          <small>Seeded demo data is active until live seller integrations are connected.</small>
         </div>
       </section>
 
-      <section className="advisor-health-grid">
+      <section className="advisor-health-grid" aria-label="Money at risk">
         <div>
           <span>Revenue at risk</span>
           <strong>{money(health.revenueAtRisk)}</strong>
@@ -136,98 +155,107 @@ export default function AdvisorCommandCenter() {
         <div>
           <span>Supplier risks</span>
           <strong>{health.supplierRisks}</strong>
-          <small>Suppliers under target reliability.</small>
+          <small>Suppliers below target reliability or service confidence.</small>
         </div>
         <div>
           <span>Pending decisions</span>
           <strong>{health.pendingRecommendations}</strong>
-          <small>Recommendations still waiting for a human action.</small>
+          <small>Recommendations still waiting for owner action.</small>
         </div>
       </section>
 
       <section className="advisor-priority-section">
         <div className="results-header">
           <div>
-            <span className="result-label">Priority issues</span>
-            <h3>What needs attention today</h3>
+            <span className="result-label">What needs action today</span>
+            <h3>Here&apos;s what I recommend next</h3>
           </div>
           <span className="tier-chip">{advisor.priorityIssues.length} ranked</span>
         </div>
 
-        <div className="advisor-priority-grid">
-          {advisor.priorityIssues.map((issue, index) => (
-            <article className="advisor-priority-card" key={issue.id}>
-              <div className="advisor-card-head">
-                <span className="advisor-category-badge">{issue.category}</span>
-                <span className={`sku-priority ${priorityClass(issue.severity)}`}>
-                  {issue.severity}
-                </span>
-              </div>
-              <h4>
-                <span>{index + 1}.</span> {issue.title}
-              </h4>
-
-              <div className="advisor-priority-impact">
-                <div>
-                  <span>Financial impact</span>
-                  <strong>{money(issue.financialImpact)}</strong>
+        {advisor.priorityIssues.length ? (
+          <div className="advisor-issue-grid">
+            {advisor.priorityIssues.map((issue, index) => (
+              <article className="advisor-issue-card" key={issue.id}>
+                <div className="advisor-card-head">
+                  <span className="advisor-category-badge">{issue.category}</span>
+                  <span className={`sku-priority ${priorityClass(issue.severity)}`}>
+                    {issue.severity}
+                  </span>
                 </div>
-                <div>
-                  <span>Recommended action</span>
-                  <strong>{issue.recommendedAction}</strong>
-                </div>
-              </div>
 
-              <div className="advisor-reason-block">
-                <span className="result-label">Why this matters</span>
-                <p>{issue.whyItMatters}</p>
-              </div>
+                <h4>
+                  <span>{index + 1}.</span> {issue.issue}
+                </h4>
 
-              <div className="advisor-evidence-grid">
-                <div>
-                  <span className="result-label">Evidence</span>
-                  <ul>
-                    {issue.evidence.slice(0, 5).map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
+                <div className="advisor-issue-block">
+                  <span>Recommendation</span>
+                  <p>{issue.recommendation}</p>
                 </div>
-                <div>
-                  <span className="result-label">If ignored</span>
-                  <ul>
-                    {issue.ifIgnored.slice(0, 4).map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
 
-              <div className="advisor-confidence-row">
-                <div>
-                  <span>Confidence</span>
-                  <strong>{percent(issue.confidence)}</strong>
+                <div className="advisor-issue-block">
+                  <span>Why</span>
+                  <p>{issue.why}</p>
                 </div>
-                <p>{issue.confidenceSummary}</p>
-              </div>
 
-              <div className="advisor-card-actions">
-                <Link className="button button-primary" href={issue.primaryActionHref}>
-                  {issue.primaryActionLabel}
-                </Link>
-                <Link className="button button-secondary" href={issue.secondaryActionHref}>
-                  {issue.secondaryActionLabel}
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
+                <div className="advisor-compact-metrics">
+                  <div>
+                    <span>Impact</span>
+                    <strong>{issue.impact}</strong>
+                  </div>
+                  <div>
+                    <span>Confidence</span>
+                    <strong>{percent(issue.confidence)}</strong>
+                  </div>
+                </div>
+
+                <details className="advisor-reasoning-details">
+                  <summary>Why Auretix thinks this</summary>
+                  <div className="advisor-detail-columns">
+                    <div>
+                      <span>Evidence</span>
+                      <ul>{detailList(issue.detail?.evidence, "Current operating signals need review.")}</ul>
+                    </div>
+                    <div>
+                      <span>If ignored</span>
+                      <ul>{detailList(issue.detail?.ifIgnored, "The issue may become harder to recover later.")}</ul>
+                    </div>
+                    <div>
+                      <span>Confidence reasoning</span>
+                      <ul>
+                        {detailList(
+                          issue.detail?.confidenceReasoning,
+                          "Confidence is based on risk, supplier, and recommendation history.",
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                </details>
+
+                <div className="advisor-card-actions">
+                  <Link className="button button-primary" href={issue.actionHref}>
+                    {issue.actionLabel}
+                  </Link>
+                  <Link className="button button-secondary" href={issue.secondaryActionHref}>
+                    {issue.secondaryActionLabel}
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="advisor-empty-state">
+            <strong>No urgent decisions found.</strong>
+            <span>Review the deep dives below when you want to inspect SKU, cash, supplier, or partner signals.</span>
+          </div>
+        )}
       </section>
 
       <section className="advisor-goals-section">
         <div className="results-header">
           <div>
-            <span className="result-label">Ask Auretix what you want to solve</span>
-            <h3>Start with the business goal</h3>
+            <span className="result-label">Choose the next move</span>
+            <h3>What would you like to solve?</h3>
           </div>
           <span className="tier-chip">Goal based</span>
         </div>

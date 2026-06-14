@@ -1965,7 +1965,10 @@ textarea {
 .advisor-signal-card span,
 .advisor-health-grid span,
 .advisor-priority-impact span,
-.advisor-confidence-row span {
+.advisor-confidence-row span,
+.advisor-issue-block span,
+.advisor-compact-metrics span,
+.advisor-detail-columns span {
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 900;
@@ -1985,8 +1988,11 @@ textarea {
 
 .advisor-health-grid,
 .advisor-priority-grid,
+.advisor-issue-grid,
 .advisor-priority-impact,
 .advisor-evidence-grid,
+.advisor-compact-metrics,
+.advisor-detail-columns,
 .advisor-goal-grid,
 .advisor-deep-dive-grid {
   display: grid;
@@ -2032,6 +2038,118 @@ textarea {
 .advisor-priority-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 18px;
+}
+
+.advisor-conversation-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.advisor-issue-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 18px;
+}
+
+.advisor-issue-card {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid rgba(129, 171, 197, 0.16);
+  border-radius: 20px;
+  background:
+    linear-gradient(145deg, rgba(9, 31, 44, 0.92), rgba(3, 14, 20, 0.86));
+}
+
+.advisor-issue-card h4 {
+  margin: 0;
+  font-size: 1.45rem;
+  line-height: 1.22;
+}
+
+.advisor-issue-card h4 span {
+  color: var(--accent-warm);
+}
+
+.advisor-issue-block,
+.advisor-reasoning-details {
+  padding: 15px;
+  border: 1px solid rgba(129, 171, 197, 0.14);
+  border-radius: 16px;
+  background: rgba(2, 10, 16, 0.56);
+}
+
+.advisor-issue-block p {
+  margin: 8px 0 0;
+  color: var(--text);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+.advisor-compact-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.advisor-compact-metrics > div {
+  padding: 15px;
+  border: 1px solid rgba(255, 201, 107, 0.18);
+  border-radius: 16px;
+  background: rgba(47, 38, 18, 0.24);
+}
+
+.advisor-compact-metrics strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 1.25rem;
+  line-height: 1.25;
+}
+
+.advisor-reasoning-details {
+  color: var(--muted);
+}
+
+.advisor-reasoning-details summary {
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 900;
+}
+
+.advisor-reasoning-details summary::marker {
+  color: var(--accent);
+}
+
+.advisor-detail-columns {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 15px;
+}
+
+.advisor-detail-columns > div {
+  min-width: 0;
+}
+
+.advisor-detail-columns ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  line-height: 1.55;
+}
+
+.advisor-detail-columns li {
+  margin-top: 7px;
+}
+
+.advisor-empty-state {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid rgba(91, 242, 200, 0.2);
+  border-radius: 18px;
+  background: rgba(15, 48, 45, 0.42);
+}
+
+.advisor-empty-state span {
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .advisor-priority-card {
@@ -3534,8 +3652,11 @@ textarea {
   .advisor-command-hero,
   .advisor-health-grid,
   .advisor-priority-grid,
+  .advisor-issue-grid,
   .advisor-priority-impact,
   .advisor-evidence-grid,
+  .advisor-compact-metrics,
+  .advisor-detail-columns,
   .advisor-confidence-row,
   .advisor-goal-grid,
   .advisor-deep-dive-grid,
