@@ -171,7 +171,8 @@ textarea {
   line-height: 0.98;
 }
 
-.app-nav a {
+.app-nav a,
+.app-nav-trigger {
   padding: 10px 14px;
   border: 1px solid rgba(129, 171, 197, 0.2);
   border-radius: 999px;
@@ -189,55 +190,50 @@ textarea {
   position: relative;
 }
 
-.app-nav-menu summary {
-  display: block;
-  padding: 10px 14px;
-  border: 1px solid rgba(129, 171, 197, 0.2);
-  border-radius: 999px;
-  background: rgba(9, 28, 39, 0.75);
-  color: var(--text);
+.app-nav-trigger {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
-  font-weight: 700;
-  list-style: none;
 }
 
-.app-nav-menu summary::-webkit-details-marker {
-  display: none;
+.app-nav-trigger:hover,
+.app-nav a:hover {
+  border-color: rgba(91, 242, 200, 0.32);
 }
 
-.app-nav-menu summary::after {
-  content: " +";
+.app-nav-indicator {
+  display: inline-flex;
+  min-width: 8px;
   color: var(--accent);
+  font-weight: 900;
 }
 
-.app-nav-menu[open] summary {
+.app-nav-menu.is-open .app-nav-trigger {
   border-color: rgba(91, 242, 200, 0.38);
-}
-
-.app-nav-menu[open] summary::after {
-  content: " -";
+  background: rgba(12, 42, 50, 0.92);
 }
 
 .app-nav-dropdown {
   position: absolute;
-  right: auto;
-  z-index: 10;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 30;
   display: grid;
   gap: 8px;
   min-width: 230px;
-  margin-top: 10px;
   padding: 12px;
   border: 1px solid rgba(129, 171, 197, 0.22);
   border-radius: 18px;
   background: rgba(3, 14, 20, 0.98);
   box-shadow: var(--shadow);
-}
-
-.app-nav-menu:not([open]) .app-nav-dropdown {
-  display: none;
+  animation: appNavReveal 170ms ease-out;
+  transform-origin: top center;
 }
 
 .app-nav-dropdown-right {
+  left: auto;
   right: 0;
 }
 
@@ -252,6 +248,18 @@ textarea {
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+@keyframes appNavReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .app-lab-layout {
