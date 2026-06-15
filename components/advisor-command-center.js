@@ -25,6 +25,64 @@ function detailList(items, fallback) {
   return lines.map((line) => <li key={line}>{line}</li>);
 }
 
+function EvidenceDrilldown({ drilldown }) {
+  if (!drilldown) {
+    return (
+      <div className="advisor-evidence-grid">
+        <div>
+          <span>Evidence</span>
+          <ul>
+            <li>Open the investigation view to inspect the underlying SKU, supplier, and cash signals.</li>
+          </ul>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="advisor-evidence-grid">
+      <div>
+        <span>Current state</span>
+        <ul>{detailList(drilldown.currentState, "Current state is still being assembled.")}</ul>
+      </div>
+      <div>
+        <span>Trend</span>
+        <ul>{detailList(drilldown.trend, "Trend history is not mature yet.")}</ul>
+      </div>
+      <div>
+        <span>Projection</span>
+        <ul>{detailList(drilldown.projection, "Projection is in watch mode.")}</ul>
+      </div>
+      <div>
+        <span>Assumptions</span>
+        <ul>{detailList(drilldown.assumptions, "Assumptions use current demo operating data.")}</ul>
+      </div>
+      <div>
+        <span>Calculation</span>
+        <ul>{detailList(drilldown.calculation, "Calculation appears after SKU velocity and inventory data are available.")}</ul>
+      </div>
+      <div>
+        <span>Confidence</span>
+        <strong>{percent(drilldown.confidence?.score)}</strong>
+        <ul>
+          {detailList(
+            drilldown.confidence?.drivers,
+            "Confidence uses current inventory, supplier, demand, and outcome signals.",
+          )}
+        </ul>
+      </div>
+      <div>
+        <span>Evidence</span>
+        <ul>{detailList(drilldown.evidence, "No additional evidence is available yet.")}</ul>
+      </div>
+      <div>
+        <span>Possible response paths</span>
+        <ul>{detailList(drilldown.responsePaths, "Monitor current conditions.")}</ul>
+      </div>
+    </div>
+  );
+}
+
 function impactLabel(issue) {
   if (issue.category === "Stockout Risk") {
     return "Revenue Exposure";
@@ -48,9 +106,9 @@ export default function AdvisorCommandCenter() {
       <header className="app-header advisor-topbar">
         <div>
           <div className="eyebrow">Auretix Advisor</div>
-          <h1>What can cost money today?</h1>
+          <h1>What changed in the business today?</h1>
           <p className="hero-text">
-            Auretix decides what matters first. Deeper tools stay behind investigations.
+            Auretix informs. You decide. Open any exposure to inspect the evidence.
           </p>
         </div>
         <AppNavigation />
@@ -65,10 +123,10 @@ export default function AdvisorCommandCenter() {
             <p>{advisor.findingSummary}</p>
             <p>{briefing.leadRisk}</p>
             <p>{briefing.consequence}</p>
-            <p>{briefing.recommendation}</p>
+            <p>{briefing.responseContext}</p>
           </div>
           <div className="advisor-secondary-findings">
-            <span>I also identified:</span>
+            <span>Other operational changes detected:</span>
             <ul>
               {briefing.additionalFindings.map((finding) => (
                 <li key={finding}>{finding}</li>
@@ -79,9 +137,21 @@ export default function AdvisorCommandCenter() {
         </div>
 
         <aside className="advisor-signal-card advisor-briefing-snapshot">
-          <span>Business exposure</span>
-          <strong>{money(health.revenueAtRisk)}</strong>
-          <small>Revenue at risk across today&apos;s operating issues.</small>
+          <span>Projected exposure</span>
+          <details className="advisor-evidence-disclosure advisor-snapshot-disclosure">
+            <summary>
+              <strong>{money(health.revenueAtRisk)}</strong>
+              <small>View aggregate evidence</small>
+            </summary>
+            <div className="advisor-mini-evidence">
+              <span>Current state</span>
+              <p>Aggregate revenue exposure across current inventory, supplier, and inbound timing signals.</p>
+              <span>Assumption</span>
+              <p>Uses the current SKU risk snapshot and existing decision-outcome history.</p>
+              <span>Calculation</span>
+              <p>Sum of active projected revenue exposure across the current operating queue.</p>
+            </div>
+          </details>
           <div className="advisor-snapshot-metrics">
             <div>
               <span>Pending</span>
@@ -107,13 +177,21 @@ export default function AdvisorCommandCenter() {
               <div className="advisor-problem-rank">Issue {index + 1}</div>
               <span className="advisor-rank-category">{problem.label}</span>
               <h3>{problem.issue}</h3>
-              <div className="advisor-problem-impact">
-                <span>{problem.impactLabel}</span>
-                <strong>{problem.impact}</strong>
-              </div>
+              <details className="advisor-evidence-disclosure">
+                <summary>
+                  <span>{problem.impactLabel}</span>
+                  <strong>{problem.impact}</strong>
+                  <small>View calculation</small>
+                </summary>
+                <EvidenceDrilldown drilldown={problem.evidenceDrilldown} />
+              </details>
               <div className="advisor-problem-recommendation">
-                <span>Recommended action</span>
-                <p>{problem.recommendation}</p>
+                <span>Projection</span>
+                <p>{problem.projection}</p>
+              </div>
+              <div className="advisor-response-paths">
+                <span>Possible response paths</span>
+                <ul>{detailList(problem.responsePaths, "Monitor current conditions.")}</ul>
               </div>
               <Link className="button button-primary" href={problem.href}>
                 {problem.actionLabel}
@@ -151,12 +229,12 @@ export default function AdvisorCommandCenter() {
                 <div className="advisor-ranked-detail">
                   <div className="advisor-ranked-main">
                     <div>
-                      <span>Issue</span>
+                      <span>Current state</span>
                       <p>{issue.issue}</p>
                     </div>
                     <div>
-                      <span>Recommendation</span>
-                      <p>{issue.recommendation}</p>
+                      <span>Projection</span>
+                      <p>{issue.projection}</p>
                     </div>
                     <div>
                       <span>Why</span>
@@ -165,10 +243,14 @@ export default function AdvisorCommandCenter() {
                   </div>
 
                   <div className="advisor-ranked-metrics">
-                    <div>
-                      <span>Financial impact</span>
-                      <strong>{issue.impact}</strong>
-                    </div>
+                    <details className="advisor-evidence-disclosure advisor-ranked-impact-disclosure">
+                      <summary>
+                        <span>Financial impact</span>
+                        <strong>{issue.impact}</strong>
+                        <small>View calculation</small>
+                      </summary>
+                      <EvidenceDrilldown drilldown={issue.evidenceDrilldown} />
+                    </details>
                     <div>
                       <span>Confidence</span>
                       <strong>{percent(issue.confidence)}</strong>
@@ -181,7 +263,7 @@ export default function AdvisorCommandCenter() {
                       <ul>{detailList(issue.detail?.evidence, "Current operating signals need review.")}</ul>
                     </div>
                     <div>
-                      <span>If ignored</span>
+                      <span>Projection risk</span>
                       <ul>{detailList(issue.detail?.ifIgnored, "The issue may become harder to recover later.")}</ul>
                     </div>
                     <div>
@@ -189,10 +271,15 @@ export default function AdvisorCommandCenter() {
                       <ul>
                         {detailList(
                           issue.detail?.confidenceReasoning,
-                          "Confidence is based on risk, supplier, and recommendation history.",
+                          "Confidence is based on risk, supplier, and prior decision history.",
                         )}
                       </ul>
                     </div>
+                  </div>
+
+                  <div className="advisor-response-paths advisor-ranked-response-paths">
+                    <span>Possible response paths</span>
+                    <ul>{detailList(issue.responsePaths, "Monitor current conditions.")}</ul>
                   </div>
 
                   <div className="advisor-card-actions">
@@ -209,8 +296,8 @@ export default function AdvisorCommandCenter() {
           </div>
         ) : (
           <div className="advisor-empty-state">
-            <strong>No urgent decisions found.</strong>
-            <span>Review the deep dives below when you want to inspect SKU, cash, supplier, or partner signals.</span>
+            <strong>No major operational changes detected.</strong>
+            <span>Continue monitoring SKU, cash, supplier, and partner signals as data changes.</span>
           </div>
         )}
       </section>
