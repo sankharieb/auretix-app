@@ -2056,7 +2056,11 @@ textarea {
 .advisor-evidence-disclosure summary span,
 .advisor-evidence-grid span,
 .advisor-mini-evidence span,
-.advisor-response-paths span {
+.advisor-response-paths span,
+.advisor-trust-panel span,
+.advisor-trust-metrics span,
+.advisor-trust-sources span,
+.advisor-trust-explanation-grid span {
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 900;
@@ -2079,6 +2083,9 @@ textarea {
 .advisor-issue-grid,
 .advisor-priority-impact,
 .advisor-evidence-grid,
+.advisor-trust-metrics,
+.advisor-trust-sources,
+.advisor-trust-explanation-grid,
 .advisor-compact-metrics,
 .advisor-detail-columns,
 .advisor-action-grid,
@@ -2359,6 +2366,150 @@ textarea {
   display: block;
   font-size: 1.55rem;
   line-height: 1.08;
+}
+
+.advisor-trust-panel {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(129, 171, 197, 0.16);
+  border-radius: 16px;
+  background: rgba(4, 18, 24, 0.68);
+}
+
+.advisor-trust-green {
+  border-color: rgba(91, 242, 200, 0.28);
+  background: rgba(15, 48, 45, 0.42);
+}
+
+.advisor-trust-yellow {
+  border-color: rgba(255, 201, 107, 0.28);
+  background: rgba(47, 38, 18, 0.28);
+}
+
+.advisor-trust-red {
+  border-color: rgba(255, 124, 112, 0.3);
+  background: rgba(54, 18, 18, 0.26);
+}
+
+.advisor-trust-header {
+  display: grid;
+  gap: 5px;
+}
+
+.advisor-trust-header strong {
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.advisor-trust-header small,
+.advisor-trust-metrics small,
+.advisor-trust-sources small,
+.advisor-trust-explanation-grid small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.advisor-trust-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.advisor-trust-metrics > div,
+.advisor-trust-sources > div,
+.advisor-trust-explanation-grid > div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(129, 171, 197, 0.14);
+  border-radius: 14px;
+  background: rgba(2, 10, 16, 0.46);
+}
+
+.advisor-trust-metrics strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--text);
+  font-size: 1.15rem;
+  line-height: 1.15;
+}
+
+.advisor-trust-sources {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.advisor-trust-sources ul,
+.advisor-trust-explanation-grid ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.advisor-trust-sources li,
+.advisor-trust-explanation-grid li {
+  margin-top: 8px;
+}
+
+.advisor-trust-sources li strong,
+.advisor-trust-explanation-grid li strong {
+  display: block;
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.advisor-trust-details {
+  color: var(--muted);
+}
+
+.advisor-trust-details summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 900;
+  list-style: none;
+}
+
+.advisor-trust-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.advisor-trust-details summary::after {
+  content: " +";
+}
+
+.advisor-trust-details[open] summary {
+  margin-bottom: 12px;
+}
+
+.advisor-trust-details[open] summary::after {
+  content: " -";
+}
+
+.advisor-trust-explanation-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.advisor-trust-explanation-wide {
+  grid-column: 1 / -1;
+}
+
+.advisor-trust-compact {
+  gap: 10px;
+  padding: 12px;
+}
+
+.advisor-trust-compact .advisor-trust-header small {
+  display: none;
+}
+
+.advisor-trust-compact .advisor-trust-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.advisor-trust-compact .advisor-trust-metrics > div {
+  padding: 10px;
 }
 
 .advisor-snapshot-disclosure {
@@ -4108,6 +4259,9 @@ textarea {
   .advisor-issue-grid,
   .advisor-priority-impact,
   .advisor-evidence-grid,
+  .advisor-trust-metrics,
+  .advisor-trust-sources,
+  .advisor-trust-explanation-grid,
   .advisor-compact-metrics,
   .advisor-detail-columns,
   .advisor-action-grid,

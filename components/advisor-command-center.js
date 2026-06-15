@@ -25,6 +25,112 @@ function detailList(items, fallback) {
   return lines.map((line) => <li key={line}>{line}</li>);
 }
 
+function sourceList(sources, fallback) {
+  const items = Array.isArray(sources) ? sources.filter(Boolean) : [];
+
+  if (!items.length) {
+    return <li>{fallback}</li>;
+  }
+
+  return items.map((source) => (
+    <li key={source.label || source}>
+      <strong>{source.label || source}</strong>
+      {source.detail ? <small>{source.detail}</small> : null}
+    </li>
+  ));
+}
+
+function TrustPanel({ trust, compact = false }) {
+  if (!trust) {
+    return null;
+  }
+
+  const healthTone = trust.projectionHealth?.tone || "yellow";
+
+  return (
+    <section className={`advisor-trust-panel advisor-trust-${healthTone}${compact ? " advisor-trust-compact" : ""}`}>
+      <div className="advisor-trust-header">
+        <span>Projection trust</span>
+        <strong>{trust.projectionHealth?.label || "Moderate evidence"}</strong>
+        <small>{trust.projectionHealth?.explanation || "Current confidence is based on available operating data."}</small>
+      </div>
+
+      <div className="advisor-trust-metrics">
+        <div>
+          <span>Data completeness</span>
+          <strong>{percent(trust.dataCompleteness)}</strong>
+          <small>
+            {percent(trust.realDataPercent)} connected / {percent(trust.inferredDataPercent)} inferred
+          </small>
+        </div>
+        <div>
+          <span>Confidence</span>
+          <strong>{percent(trust.modelConfidence)}</strong>
+          <small>Based on available operating data.</small>
+        </div>
+        <div>
+          <span>Data quality</span>
+          <strong>{trust.dataQuality}</strong>
+          <small>Source quality behind this projection.</small>
+        </div>
+        <div>
+          <span>Projection health</span>
+          <strong>{trust.projectionHealth?.label || "Moderate evidence"}</strong>
+          <small>{healthTone}</small>
+        </div>
+      </div>
+
+      {!compact ? (
+        <>
+          <div className="advisor-trust-sources">
+            <div>
+              <span>Connected sources</span>
+              <ul>{sourceList(trust.connectedSources, "No connected source is available yet.")}</ul>
+            </div>
+            <div>
+              <span>Missing or inferred</span>
+              <ul>{sourceList(trust.missingSources, "No major required source is missing.")}</ul>
+            </div>
+          </div>
+
+          <details className="advisor-trust-details">
+            <summary>Why this confidence score?</summary>
+            <div className="advisor-trust-explanation-grid">
+              <div>
+                <span>Confidence drivers</span>
+                <ul>
+                  {detailList(
+                    trust.confidenceDrivers?.supporting,
+                    "No confidence-raising driver is available yet.",
+                  )}
+                </ul>
+              </div>
+              <div>
+                <span>Confidence reducers</span>
+                <ul>
+                  {detailList(
+                    trust.confidenceDrivers?.reducing,
+                    "No major confidence reducer is visible.",
+                  )}
+                </ul>
+              </div>
+              <div className="advisor-trust-explanation-wide">
+                <span>Score explanation</span>
+                <ul>
+                  {sourceList(
+                    trust.confidenceExplanation,
+                    "Confidence explanation is still being assembled.",
+                  )}
+                </ul>
+              </div>
+            </div>
+          </details>
+        </>
+      ) : null}
+    </section>
+  );
+}
+
 function EvidenceDrilldown({ drilldown }) {
   if (!drilldown) {
     return (
@@ -40,46 +146,49 @@ function EvidenceDrilldown({ drilldown }) {
   }
 
   return (
-    <div className="advisor-evidence-grid">
-      <div>
-        <span>Current state</span>
-        <ul>{detailList(drilldown.currentState, "Current state is still being assembled.")}</ul>
+    <>
+      <TrustPanel trust={drilldown.trust} />
+      <div className="advisor-evidence-grid">
+        <div>
+          <span>Current state</span>
+          <ul>{detailList(drilldown.currentState, "Current state is still being assembled.")}</ul>
+        </div>
+        <div>
+          <span>Trend</span>
+          <ul>{detailList(drilldown.trend, "Trend history is not mature yet.")}</ul>
+        </div>
+        <div>
+          <span>Projection</span>
+          <ul>{detailList(drilldown.projection, "Projection is in watch mode.")}</ul>
+        </div>
+        <div>
+          <span>Assumptions</span>
+          <ul>{detailList(drilldown.assumptions, "Assumptions use current demo operating data.")}</ul>
+        </div>
+        <div>
+          <span>Calculation</span>
+          <ul>{detailList(drilldown.calculation, "Calculation appears after SKU velocity and inventory data are available.")}</ul>
+        </div>
+        <div>
+          <span>Confidence</span>
+          <strong>{percent(drilldown.confidence?.score)}</strong>
+          <ul>
+            {detailList(
+              drilldown.confidence?.drivers,
+              "Confidence uses current inventory, supplier, demand, and outcome signals.",
+            )}
+          </ul>
+        </div>
+        <div>
+          <span>Evidence</span>
+          <ul>{detailList(drilldown.evidence, "No additional evidence is available yet.")}</ul>
+        </div>
+        <div>
+          <span>Possible response paths</span>
+          <ul>{detailList(drilldown.responsePaths, "Monitor current conditions.")}</ul>
+        </div>
       </div>
-      <div>
-        <span>Trend</span>
-        <ul>{detailList(drilldown.trend, "Trend history is not mature yet.")}</ul>
-      </div>
-      <div>
-        <span>Projection</span>
-        <ul>{detailList(drilldown.projection, "Projection is in watch mode.")}</ul>
-      </div>
-      <div>
-        <span>Assumptions</span>
-        <ul>{detailList(drilldown.assumptions, "Assumptions use current demo operating data.")}</ul>
-      </div>
-      <div>
-        <span>Calculation</span>
-        <ul>{detailList(drilldown.calculation, "Calculation appears after SKU velocity and inventory data are available.")}</ul>
-      </div>
-      <div>
-        <span>Confidence</span>
-        <strong>{percent(drilldown.confidence?.score)}</strong>
-        <ul>
-          {detailList(
-            drilldown.confidence?.drivers,
-            "Confidence uses current inventory, supplier, demand, and outcome signals.",
-          )}
-        </ul>
-      </div>
-      <div>
-        <span>Evidence</span>
-        <ul>{detailList(drilldown.evidence, "No additional evidence is available yet.")}</ul>
-      </div>
-      <div>
-        <span>Possible response paths</span>
-        <ul>{detailList(drilldown.responsePaths, "Monitor current conditions.")}</ul>
-      </div>
-    </div>
+    </>
   );
 }
 
@@ -152,6 +261,7 @@ export default function AdvisorCommandCenter() {
               <p>Sum of active projected revenue exposure across the current operating queue.</p>
             </div>
           </details>
+          <TrustPanel trust={advisor.aggregateTrust} compact />
           <div className="advisor-snapshot-metrics">
             <div>
               <span>Pending</span>
@@ -189,6 +299,7 @@ export default function AdvisorCommandCenter() {
                 <span>Projection</span>
                 <p>{problem.projection}</p>
               </div>
+              <TrustPanel trust={problem.evidenceDrilldown?.trust} compact />
               <div className="advisor-response-paths">
                 <span>Possible response paths</span>
                 <ul>{detailList(problem.responsePaths, "Monitor current conditions.")}</ul>
@@ -256,6 +367,8 @@ export default function AdvisorCommandCenter() {
                       <strong>{percent(issue.confidence)}</strong>
                     </div>
                   </div>
+
+                  <TrustPanel trust={issue.evidenceDrilldown?.trust} compact />
 
                   <div className="advisor-detail-columns">
                     <div>
