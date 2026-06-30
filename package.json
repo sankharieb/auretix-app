@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "supabase:check": "node scripts/verify-supabase.mjs"
+    "supabase:check": "node scripts/verify-supabase.mjs",
+    "profit:test": "node scripts/test-profit-engine.mjs",
+    "evidence:test": "node scripts/test-evidence-engine.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
