@@ -8,8 +8,11 @@
     "start": "next start",
     "lint": "next lint",
     "supabase:check": "node scripts/verify-supabase.mjs",
+    "supabase:test": "node scripts/test-supabase-integration.mjs",
     "profit:test": "node scripts/test-profit-engine.mjs",
-    "evidence:test": "node scripts/test-evidence-engine.mjs"
+    "evidence:test": "node scripts/test-evidence-engine.mjs",
+    "memory:test": "node scripts/test-memory-engine.mjs",
+    "advisor-feed:test": "node scripts/test-advisor-feed.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
