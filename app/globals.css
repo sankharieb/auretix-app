@@ -4450,6 +4450,350 @@ textarea {
   }
 }
 
+.landing-shell {
+  max-width: 1280px;
+}
+
+.landing-hero {
+  min-height: 86vh;
+  padding: 10px 0 48px;
+}
+
+.landing-hero-grid {
+  align-items: center;
+  display: grid;
+  gap: 42px;
+  grid-template-columns: minmax(0, 1.02fr) minmax(360px, 0.98fr);
+  padding: 68px 0 34px;
+}
+
+.landing-hero-copy {
+  display: grid;
+  gap: 18px;
+}
+
+.landing-hero-copy h1 {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: clamp(4rem, 8vw, 7.8rem);
+  letter-spacing: 0;
+  line-height: 0.9;
+  margin: 0;
+  max-width: 10ch;
+}
+
+.landing-hero-copy .hero-text {
+  margin: 0;
+  max-width: 62ch;
+}
+
+.landing-advisor-preview,
+.landing-glass-card,
+.landing-philosophy-card,
+.landing-final-card,
+.landing-user-card,
+.landing-statement {
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(135deg, rgba(17, 38, 48, 0.92), rgba(4, 13, 18, 0.9)),
+    rgba(8, 27, 39, 0.82);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.landing-advisor-preview {
+  border-radius: 28px;
+  display: grid;
+  gap: 22px;
+  padding: 28px;
+}
+
+.landing-preview-header,
+.landing-preview-risk,
+.landing-philosophy-card,
+.landing-final-card {
+  align-items: flex-start;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.landing-preview-header h2 {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: clamp(2.35rem, 4vw, 4rem);
+  line-height: 0.98;
+  margin: 0;
+}
+
+.landing-preview-copy {
+  color: var(--muted);
+  display: grid;
+  font-size: 1.04rem;
+  gap: 10px;
+  line-height: 1.7;
+}
+
+.landing-preview-copy p {
+  margin: 0;
+}
+
+.landing-preview-risk,
+.landing-preview-evidence,
+.landing-preview-metrics > div {
+  border: 1px solid rgba(129, 171, 197, 0.16);
+  border-radius: 18px;
+  background: rgba(3, 14, 20, 0.72);
+}
+
+.landing-preview-risk {
+  padding: 20px;
+}
+
+.landing-preview-risk strong {
+  display: block;
+  font-size: 1.15rem;
+  line-height: 1.35;
+}
+
+.landing-preview-impact {
+  color: var(--text);
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  font-weight: 800;
+  line-height: 0.95;
+}
+
+.landing-preview-metrics {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.landing-preview-metrics > div {
+  display: grid;
+  gap: 8px;
+  min-height: 96px;
+  padding: 16px;
+}
+
+.landing-preview-metrics span,
+.landing-preview-evidence span {
+  color: var(--accent-warm);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.landing-preview-metrics strong {
+  font-size: 1.25rem;
+}
+
+.landing-preview-evidence {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+}
+
+.landing-preview-evidence p {
+  color: var(--muted);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.landing-statement {
+  border-radius: 26px;
+  display: grid;
+  gap: 28px;
+  margin: 10px 0 24px;
+  padding: 34px;
+}
+
+.landing-statement p {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: clamp(1.8rem, 3vw, 3rem);
+  line-height: 1.08;
+  margin: 0;
+  max-width: 860px;
+}
+
+.landing-statement-grid,
+.landing-card-grid,
+.landing-user-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.landing-statement-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.landing-statement-grid span {
+  border-top: 1px solid rgba(129, 171, 197, 0.22);
+  color: var(--muted);
+  font-weight: 800;
+  padding-top: 16px;
+}
+
+.landing-card-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.landing-glass-card,
+.landing-user-card {
+  border-radius: 22px;
+  min-height: 220px;
+  padding: 24px;
+}
+
+.landing-glass-card h3,
+.landing-user-card h3 {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 1.45rem;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.landing-glass-card p,
+.landing-user-card p,
+.landing-philosophy-card p,
+.landing-final-card p {
+  color: var(--muted);
+  line-height: 1.72;
+}
+
+.landing-architecture-flow {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.landing-architecture-step {
+  position: relative;
+  display: grid;
+  gap: 18px;
+  min-height: 168px;
+  padding: 20px;
+  border: 1px solid rgba(91, 242, 200, 0.16);
+  border-radius: 22px;
+  background: rgba(4, 15, 22, 0.78);
+}
+
+.landing-architecture-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -12px;
+  width: 22px;
+  height: 1px;
+  background: rgba(91, 242, 200, 0.42);
+}
+
+.landing-architecture-step span {
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.landing-architecture-step strong {
+  align-self: end;
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.landing-philosophy-card,
+.landing-final-card {
+  border-radius: 28px;
+  padding: 34px;
+}
+
+.landing-philosophy-card h2,
+.landing-final-card h2 {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: clamp(2.2rem, 4vw, 4.4rem);
+  line-height: 0.98;
+  margin: 12px 0 0;
+}
+
+.landing-philosophy-card > div,
+.landing-final-card > div {
+  max-width: 600px;
+}
+
+.landing-philosophy-card strong {
+  display: block;
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
+  line-height: 1.1;
+  margin-top: 20px;
+}
+
+.landing-user-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.landing-user-card {
+  min-height: 190px;
+}
+
+@media (max-width: 1080px) {
+  .landing-hero-grid,
+  .landing-philosophy-card,
+  .landing-final-card {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-hero-grid,
+  .landing-card-grid,
+  .landing-user-grid,
+  .landing-architecture-flow,
+  .landing-statement-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .landing-architecture-step:not(:last-child)::after {
+    display: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .landing-hero {
+    min-height: auto;
+  }
+
+  .landing-hero-grid {
+    padding-top: 34px;
+  }
+
+  .landing-hero-copy h1 {
+    font-size: clamp(3.2rem, 17vw, 4.8rem);
+  }
+
+  .landing-hero-grid,
+  .landing-card-grid,
+  .landing-user-grid,
+  .landing-architecture-flow,
+  .landing-statement-grid,
+  .landing-preview-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-preview-header,
+  .landing-preview-risk,
+  .landing-philosophy-card,
+  .landing-final-card {
+    flex-direction: column;
+  }
+
+  .landing-advisor-preview,
+  .landing-statement,
+  .landing-philosophy-card,
+  .landing-final-card {
+    border-radius: 22px;
+    padding: 22px;
+  }
+}
+
 .advisor-briefing-shell {
   min-height: 100vh;
 }
